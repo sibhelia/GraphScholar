@@ -21,25 +21,34 @@ class Database:
         self.chroma_client = None
 
     def connect(self):
-        """Veritabanlarına bağlantı sağlar."""
-        try:
-            # Neo4j bağlantısını başlat
-            self.neo4j_driver = GraphDatabase.driver(
-                self.neo4j_uri, 
-                auth=(self.neo4j_user, self.neo4j_password)
-            )
-            # Bağlantıyı test et
-            self.neo4j_driver.verify_connectivity()
-            
-            # ChromaDB HTTP istemcisini başlat
-            self.chroma_client = chromadb.HttpClient(
-                host=self.chroma_host, 
-                port=self.chroma_port
-            )
-            print("Veritabanı bağlantıları başarılı.")
-        except Exception as e:
-            print(f"Bağlantı hatası: {e}")
-            raise e
+        """Veritabanlarina baglanti saglar."""
+        import time
+        max_retries = 5
+        for i in range(max_retries):
+            try:
+                # Neo4j baglantisini baslat
+                self.neo4j_driver = GraphDatabase.driver(
+                    self.neo4j_uri, 
+                    auth=(self.neo4j_user, self.neo4j_password)
+                )
+                self.neo4j_driver.verify_connectivity()
+                
+                # ChromaDB HTTP istemcisini baslat
+                self.chroma_client = chromadb.HttpClient(
+                    host=self.chroma_host, 
+                    port=self.chroma_port
+                )
+                # Chroma baglantisini test et
+                self.chroma_client.heartbeat()
+                
+                print("Veritabanı bağlantıları başarılı.")
+                return 
+            except Exception as e:
+                print(f"Baglanti denemesi {i+1} basarisiz: {e}")
+                if i < max_retries - 1:
+                    time.sleep(3)
+                else:
+                    raise e
 
     def close(self):
         """Bağlantıları güvenli bir şekilde kapatır."""

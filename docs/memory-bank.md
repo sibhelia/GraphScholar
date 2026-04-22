@@ -23,6 +23,7 @@ GraphScholar, dökümanları hem semantik bir vektör uzayında (ChromaDB) hem d
 - Entity Linking: Metinden çıkarılan her teknik kavram (örn: Self-Attention) Neo4j üzerinde tekil bir merkezi düğüme (Unique Constraint) bağlanır.
 - Two-Hop Retrieval: Sorgu anında sadece ilgili metin parçası değil, o parçanın bağlı olduğu makalenin atıf yaptığı diğer kaynaklar da bağlama dahil edilir.
 - Asynchronous Processing: PDF işleme ve embedding oluşturma süreçleri, API performansını etkilememesi için Background Tasks üzerinden yürütülür.
+- Storage Strategy: Fiziksel PDF dosyaları sunucuda saklanmaz. İşlem bittikten sonra silinir. Sadece makalenin kaynak URL'si (ArXiv vb.) referans olarak Neo4j üzerinde tutulur.
 
 ---
 

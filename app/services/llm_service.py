@@ -21,10 +21,10 @@ class LLMService:
     """Gemini API kullanarak metin analizi yapan servis."""
     
     def __init__(self):
-        # Gemini modelini baslat
+        # Gemini modelini baslat - Stabilite icin gemini-pro kullaniyoruz
         api_key = os.getenv("GOOGLE_API_KEY")
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-1.5-flash",
+            model="gemini-pro", 
             google_api_key=api_key,
             temperature=0.1
         )
@@ -34,12 +34,15 @@ class LLMService:
         """
         Makale metninden baslik, yazar ve atif bilgilerini ayiklar.
         """
+        if not text:
+            print("HATA: Analiz edilecek metin bos.")
+            return {}
+            
+        print(f"Analiz basliyor. Gelen metin boyutu: {len(text)} karakter.")
+        
         prompt_template = """
         Sana bir akademik makalenin metnini verecegim. Lutfen bu metni incele ve 
         asagidaki bilgileri JSON formatinda cikar.
-        
-        Ozellikle 'references' kısmında makalenin kaynakcasinda atif yapilan 
-        diger makalelerin tam basliklarini listelemen cok onemli.
         
         Metin:
         {context}
@@ -53,16 +56,17 @@ class LLMService:
             partial_variables={"format_instructions": self.parser.get_format_instructions()}
         )
         
-        # LangChain LCEL yapisi ile zinciri olustur
         chain = prompt | self.llm | self.parser
         
         try:
-            # Makalenin basini ve sonunu birlestirerek analiz et (Verimlilik icin)
-            context = text[:10000] + "\n[...ARA KISIM ATLANDI...]\n" + text[-5000:]
+            # Makalenin basini ve sonunu birlestirerek analiz et
+            context = text[:8000] + "\n[...ARA KISIM ATLANDI...]\n" + text[-4000:]
+            print("Gemini API'ye istek gonderiliyor...")
             result = chain.invoke({"context": context})
+            print("Gemini'den basarili cevap alindi.")
             return result
         except Exception as e:
-            print(f"LLM analiz hatasi: {e}")
+            print(f"HATA - LLM analiz hatasi: {str(e)}")
             return {}
 
 # Singleton nesnesi
