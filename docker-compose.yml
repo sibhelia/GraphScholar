@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # Graph Database: Neo4j
+  neo4j:
+    image: neo4j:5.12-community
+    container_name: graphscholar-neo4j
+    ports:
+      - "7474:7474" # HTTP port (Arayüz için)
+      - "7687:7687" # Bolt port (Kod ile bağlanmak için)
+    environment:
+      - NEO4J_AUTH=${NEO4J_USER}/${NEO4J_PASSWORD}
+    volumes:
+      - ./data/neo4j:/data
+      - ./logs/neo4j:/logs
+
+  # Vector Database: ChromaDB
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: graphscholar-chroma
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data/chroma:/chroma/data
+    environment:
+      - IS_PERSISTENT=TRUE
+
+  # API Application: FastAPI
+  app:
+    build: .
+    container_name: graphscholar-api
+    depends_on:
+      - neo4j
+      - chromadb
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload

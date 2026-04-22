@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Veritabanı Verileri (Docker'ın oluşturduğu klasörler)
+data/
+logs/
+
+# IDE
+.vscode/
+.idea/
+
+# Sistem
+.DS_Store
