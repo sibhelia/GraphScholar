@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from fastapi import FastAPI, UploadFile, File, HTTPException, Body
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import shutil
 import os
@@ -34,6 +35,15 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="GraphScholar API",
     lifespan=lifespan
+)
+
+# CORS Middleware ayari (React Frontend'in Backend'e erisebilmesi icin)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # Uretime (Production) gecerken buraya frontend'in gercek domain'i yazilmali
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 @app.get("/")
