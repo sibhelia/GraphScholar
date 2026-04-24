@@ -1,4 +1,5 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from pydantic import BaseModel
+from fastapi import FastAPI, UploadFile, File, HTTPException, Body
 from contextlib import asynccontextmanager
 import shutil
 import os
@@ -10,6 +11,7 @@ from app.services.llm_service import llm_service
 
 from app.services.graph_service import graph_service
 from app.services.vector_service import vector_service
+from app.services.search_service import search_service
 
 # Yuklenen dosyalarin gecici olarak tutulacagi klasor
 UPLOAD_DIR = Path("uploads")
@@ -96,6 +98,22 @@ async def analyze_pdf(file: UploadFile = File(...)):
         # Islem bittikten sonra gecici dosyayi silebiliriz
         if file_path.exists():
             os.remove(file_path)
+
+class QueryRequest(BaseModel):
+    question: str
+
+@app.post("/query")
+async def query_system(request: QueryRequest):
+    """
+    Sisteme doğal dilde soru sorar. 
+    Vektör (ChromaDB) ve Grafik (Neo4j) verilerini birleştirerek cevap üretir.
+    """
+    try:
+        result = search_service.perform_hybrid_search(request.question)
+        return result
+    except Exception as e:
+        print(f"Sorgulama hatasi: {e}")
+        return {"error": str(e), "status": "failed"}
 
 @app.get("/health")
 async def health_check():

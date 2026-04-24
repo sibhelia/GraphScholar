@@ -59,6 +59,13 @@ class VectorService:
             name="research_papers",
             metadata={"hnsw:space": "cosine"} # Benzerlik olcutu
         )
+        
+        # Kac kayit var?
+        try:
+            count = self.collection.count()
+            print(f"Vektör veritabanı hazır. Mevcut kayıt sayısı: {count}")
+        except:
+            print("Vektör veritabanı henüz boş veya hazır değil.")
 
     def add_chunks(self, paper_id: str, chunks: List[str], metadata: Dict):
         """
@@ -79,7 +86,8 @@ class VectorService:
                 config={"task_type": "RETRIEVAL_DOCUMENT"}
             )
             
-            embeddings = embeddings_response.embeddings
+            # Gemini objelerinden saf sayi listelerini (values) ayikla
+            embeddings = [emb.values for emb in embeddings_response.embeddings]
             
             # ChromaDB'ye metadata ile birlikte ekle
             self.collection.add(

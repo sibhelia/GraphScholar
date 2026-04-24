@@ -72,5 +72,26 @@ class GraphService:
 
         print(f"Grafik veritabanina kaydedildi: {title}")
 
+    def get_paper_neighbors(self, title: str) -> dict:
+        """
+        Bir makalenin bagli oldugu kavramlari ve atiflari getirir.
+        """
+        with db.neo4j_driver.session() as session:
+            query = """
+            MATCH (p:Paper)
+            WHERE p.title CONTAINS $title
+            OPTIONAL MATCH (p)-[:MENTIONS]->(c:Concept)
+            OPTIONAL MATCH (p)-[:CITES]->(ref:Paper)
+            RETURN collect(distinct c.name) as concepts, 
+                   collect(distinct ref.title) as citations
+            """
+            record = session.run(query, title=title).single()
+            if record:
+                return {
+                    "concepts": record["concepts"],
+                    "citations": record["citations"]
+                }
+            return {"concepts": [], "citations": []}
+
 # Singleton nesnesi
 graph_service = GraphService()
