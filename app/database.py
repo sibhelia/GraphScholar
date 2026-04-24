@@ -23,7 +23,7 @@ class Database:
     def connect(self):
         """Veritabanlarina baglanti saglar."""
         import time
-        max_retries = 5
+        max_retries = 10
         for i in range(max_retries):
             try:
                 # Neo4j baglantisini baslat
@@ -46,7 +46,7 @@ class Database:
             except Exception as e:
                 print(f"Baglanti denemesi {i+1} basarisiz: {e}")
                 if i < max_retries - 1:
-                    time.sleep(3)
+                    time.sleep(5)
                 else:
                     raise e
 
