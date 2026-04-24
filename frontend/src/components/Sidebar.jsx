@@ -1,16 +1,22 @@
 import React from 'react';
-import { BookOpen, Share2, MessageSquare, Search } from 'lucide-react';
+import { BookOpen, Share2, MessageSquare, Search, TrendingUp, LayoutGrid } from 'lucide-react';
 
 const Sidebar = ({ activeTab, setActiveTab }) => {
     const menuItems = [
-        { id: 'chat', icon: MessageSquare, label: 'Akademik Asistan' },
+        { id: 'dashboard', icon: LayoutGrid, label: 'Ana Panel' },
+        { id: 'chat', icon: MessageSquare, label: 'Komuta Merkezi' },
         { id: 'graph', icon: Share2, label: 'Grafik Keşfi' },
         { id: 'library', icon: BookOpen, label: 'Kütüphanem' },
+        { id: 'analytics', icon: TrendingUp, label: 'Analiz & Dashboard' },
     ];
 
     return (
         <aside className="sidebar">
-            <div className="brand" style={{ padding: '0', justifyContent: 'center', height: '120px', backgroundColor: '#fff', borderBottom: 'none' }}>
+            <div 
+                className="brand" 
+                style={{ padding: '0', justifyContent: 'center', height: '120px', backgroundColor: '#fff', borderBottom: 'none', cursor: 'pointer' }}
+                onClick={() => setActiveTab('dashboard')}
+            >
                 <img 
                     src="/logo.png" 
                     alt="GraphScholar" 

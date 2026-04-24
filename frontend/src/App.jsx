@@ -5,10 +5,12 @@ import Footer from './components/Footer';
 import GraphView from './components/GraphView';
 import ChatView from './components/ChatView';
 import LibraryView from './components/LibraryView';
+import AnalyticsView from './components/AnalyticsView';
+import DashboardView from './components/DashboardView';
 import { searchApi } from './services/api';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('chat');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -66,6 +68,10 @@ function App() {
         <Topbar />
         
         <main className="main-content">
+          {activeTab === 'dashboard' && (
+            <DashboardView setActiveTab={setActiveTab} />
+          )}
+
           {activeTab === 'chat' && (
             <ChatView 
               messages={messages} 
@@ -84,6 +90,10 @@ function App() {
                   isUploading={isUploading}
                   uploadStatus={uploadStatus}
               />
+          )}
+
+          {activeTab === 'analytics' && (
+              <AnalyticsView />
           )}
         </main>
 
