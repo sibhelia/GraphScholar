@@ -16,7 +16,7 @@ services:
 
   # Vector Database: ChromaDB
   chromadb:
-    image: chromadb/chroma:latest
+    image: chromadb/chroma:0.4.24
     container_name: graphscholar-chroma
     ports:
       - "8000:8000"

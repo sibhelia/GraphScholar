@@ -9,6 +9,7 @@ from app.services.pdf_processor import pdf_processor
 from app.services.llm_service import llm_service
 
 from app.services.graph_service import graph_service
+from app.services.vector_service import vector_service
 
 # Yuklenen dosyalarin gecici olarak tutulacagi klasor
 UPLOAD_DIR = Path("uploads")
@@ -64,11 +65,27 @@ async def analyze_pdf(file: UploadFile = File(...)):
         # 4. Neo4j Graph Veritabanina Kaydet
         if metadata:
             graph_service.add_paper_with_metadata(metadata)
+            
+            # 5. Metni Parcalara Bol ve ChromaDB'ye Kaydet
+            paper_id = metadata.get("title", file.filename).lower().replace(" ", "_")[:50]
+            chunks = pdf_processor.simple_chunk_text(raw_text)
+            
+            vector_service.add_chunks(
+                paper_id=paper_id,
+                chunks=chunks,
+                metadata={
+                    "title": metadata.get("title"),
+                    "year": metadata.get("year", 0),
+                    "paper_id": paper_id
+                }
+            )
         
         return {
             "filename": file.filename,
             "status": "success",
             "saved_to_graph": bool(metadata),
+            "saved_to_vector": bool(metadata),
+            "chunks_count": len(chunks) if metadata else 0,
             "analysis": metadata
         }
         

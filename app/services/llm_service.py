@@ -1,5 +1,6 @@
 import os
 import json
+import time
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
@@ -19,15 +20,19 @@ class LLMService:
         
         self.client = genai.Client(api_key=api_key)
         
-        # Dinamik olarak uygun modeli bul
+        # Dinamik olarak en SON cikan flash modelini bul
+        available_models = sorted([m.name.replace("models/", "") for m in self.client.models.list()], reverse=True)
+        
         self.model_name = None
-        for m in self.client.models.list():
-            if "flash" in m.name:
-                self.model_name = m.name.replace("models/", "")
+        for model in available_models:
+            if "flash" in model:
+                self.model_name = model
                 break
                     
         if not self.model_name:
-            self.model_name = "gemini-2.5-flash" # Varsayilan
+            self.model_name = "gemini-1.5-flash" # Guvenli liman
+            
+        print(f"Gemini istemcisi baslatildi. Otomatik Secilen En Yeni Model: {self.model_name}")
             
         print(f"Gemini istemcisi baslatildi. Secilen Model: {self.model_name}")
 
@@ -46,43 +51,71 @@ class LLMService:
         print(f"Analiz basliyor. Gelen metin boyutu: {len(text)} karakter.")
         
         # Makalenin basini ve sonunu birlestirerek analiz et (token limitini asma)
-        context = text[:8000] + "\n[...ARA KISIM ATLANDI...]\n" + text[-4000:]
+        context = text[:5000] + "\n[...METIN DEVAM EDIYOR...]\n" + text[-2000:]
         
         prompt = f"""
-        Sana bir akademik makalenin metnini verecegim. Lutfen bu metni incele ve 
-        asagidaki bilgileri SADECE JSON formatinda dondur. Baska hicbir aciklama ekleme.
+        Extract the following information from this academic paper text and return it ONLY as a valid JSON object.
         
-        Istenen JSON formati:
+        REQUIRED JSON FORMAT:
         {{
-            "title": "Makalenin tam basligi",
-            "authors": ["Yazar 1", "Yazar 2"],
-            "year": 2024,
-            "abstract": "Makalenin kisa ozeti (2-3 cumle)",
-            "references": ["Atif yapilan makale basligi 1", "Atif yapilan makale basligi 2"]
+            "title": "Full title of the paper",
+            "authors": ["Author Name 1", "Author Name 2"],
+            "year": 2026,
+            "abstract": "Brief 2-3 sentence summary",
+            "concepts": ["Concept 1", "Concept 2", "Concept 3", "Concept 4", "Concept 5"],
+            "references": ["Cited Paper Title 1", "Cited Paper Title 2"]
         }}
         
-        Makale metni:
-        {context}
+        Return ONLY the JSON. No extra text.
         
-        SADECE gecerli JSON dondur, baska bir sey yazma:
+        PAPER TEXT:
+        {context}
         """
         
-        try:
-            print("Gemini API'ye istek gonderiliyor...")
-            response = self.client.models.generate_content(
-                model=self.model_name,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    temperature=0.1,
-                    response_mime_type="application/json"
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                print(f"Gemini API'ye istek gonderiliyor (Model: {self.model_name}, Deneme: {attempt + 1})...")
+                response = self.client.models.generate_content(
+                    model=self.model_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        temperature=0.1
+                    )
                 )
-            )
-            raw_response = response.text.strip()
-            print(f"Gemini'den ham cevap alindi (ilk 200 karakter): {raw_response[:200]}")
+                
+                if not response or not response.text:
+                    print("HATA: Gemini'den bos veya gecersiz cevap dondu.")
+                    return {}
+                    
+                raw_response = response.text.strip()
+                break # Basarili ise donguden cik
+                
+            except Exception as e:
+                if "503" in str(e) or "overloaded" in str(e).lower():
+                    if attempt < max_retries - 1:
+                        print(f"Gemini mesgul, 3 saniye sonra tekrar denenecek... ({attempt + 1}/{max_retries})")
+                        time.sleep(3)
+                        continue
+                print(f"HATA - LLM analiz hatasi: {str(e)}")
+                return {}
+        
+        try:
+            # JSON'u ayikla (markdown bloklarini temizle)
+            if "```json" in raw_response:
+                raw_response = raw_response.split("```json")[1].split("```")[0].strip()
+            elif "```" in raw_response:
+                raw_response = raw_response.split("```")[1].split("```")[0].strip()
             
+            print(f"Gemini cevabi alindi. Boyut: {len(raw_response)}")
+                
             result = json.loads(raw_response)
-            print("JSON basariyla ayiklandi.")
             return result
+        except Exception as e:
+            print(f"HATA - LLM analiz hatasi: {str(e)}")
+            if 'raw_response' in locals():
+                print(f"Ham cevap: {raw_response[:200]}...")
+            return {}
         except json.JSONDecodeError as e:
             print(f"HATA - JSON ayiklama hatasi: {e}")
             return {}

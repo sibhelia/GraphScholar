@@ -10,3 +10,4 @@ python-dotenv==1.0.1
 pypdf==4.1.0
 langchain-community
 python-multipart
+arxiv

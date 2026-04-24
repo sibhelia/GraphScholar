@@ -1,4 +1,5 @@
 from app.database import db
+from app.services.arxiv_service import arxiv_service
 
 class GraphService:
     """Neo4j uzerindeki grafik islemlerini yoneten servis."""
@@ -13,6 +14,7 @@ class GraphService:
         year = metadata.get("year")
         abstract = metadata.get("abstract", "")
         references = metadata.get("references", [])
+        concepts = metadata.get("concepts", [])
         
         # Basit bir benzersiz kimlik olusturuyoruz
         paper_id = title.lower().replace(" ", "_")[:50]
@@ -33,16 +35,40 @@ class GraphService:
                     MERGE (a)-[:WROTE]->(p)
                 """, name=author_name, paper_id=paper_id)
 
-            # 3. Atif yapilan makaleleri olustur ve bagla
-            for ref_title in references:
-                ref_id = ref_title.lower().replace(" ", "_")[:50]
+            # 3. Kavram dugumlerini olustur ve makaleye bagla
+            for concept_name in concepts:
+                session.run("""
+                    MERGE (c:Concept {name: $name})
+                    WITH c
+                    MATCH (p:Paper {arxiv_id: $paper_id})
+                    MERGE (p)-[:MENTIONS]->(c)
+                """, name=concept_name, paper_id=paper_id)
+
+            # 4. Atif yapilan makaleleri olustur ve bagla
+            total_refs = len(references)
+            for idx, ref_title in enumerate(references):
+                print(f"Referans işleniyor ({idx+1}/{total_refs}): {ref_title[:50]}...")
+                # ArXiv'den gercek bilgileri cekmeye calis
+                arxiv_data = arxiv_service.search_paper_by_title(ref_title)
+                
+                if arxiv_data:
+                    ref_id = arxiv_data["arxiv_id"]
+                    ref_final_title = arxiv_data["title"]
+                    ref_summary = arxiv_data["summary"]
+                    ref_url = arxiv_data["url"]
+                else:
+                    ref_id = ref_title.lower().replace(" ", "_")[:50]
+                    ref_final_title = ref_title
+                    ref_summary = ""
+                    ref_url = ""
+
                 session.run("""
                     MERGE (rp:Paper {arxiv_id: $ref_id})
-                    ON CREATE SET rp.title = $ref_title
+                    ON CREATE SET rp.title = $ref_title, rp.abstract = $summary, rp.url = $url
                     WITH rp
                     MATCH (p:Paper {arxiv_id: $paper_id})
                     MERGE (p)-[:CITES]->(rp)
-                """, ref_id=ref_id, ref_title=ref_title, paper_id=paper_id)
+                """, ref_id=ref_id, ref_title=ref_final_title, summary=ref_summary, url=ref_url, paper_id=paper_id)
 
         print(f"Grafik veritabanina kaydedildi: {title}")
 

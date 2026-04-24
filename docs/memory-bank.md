@@ -65,9 +65,11 @@ GraphScholar, dökümanları hem semantik bir vektör uzayında (ChromaDB) hem d
 - PDF Parsing ve Semantic Chunking algoritmalarının implementasyonu.
 - Metadata extractor (Yazar, Yıl, Atıf ayıklayıcı) geliştirilmesi.
 
-### Phase 3: Hybrid Search & Synthesis
-- Vektör ve Graph sonuçlarını birleştiren RAG zincirinin kurulması.
-- Gemini 1.5 Pro / Flash ile "Reasoning" katmanının entegrasyonu.
+### Phase 3: Ambitious Features & Enrichment
+- **Concept Discovery:** Extracting top scientific concepts and linking them to papers.
+- **Citation Expansion:** Integrating ArXiv API to fetch metadata for references automatically.
+- **Reasoning Layer:** Extracting claims and evidence (Claim-Evidence graph) for deeper analysis.
+- **Hybrid Search:** Combining vector and graph results for RAG.
 
 ---
 
