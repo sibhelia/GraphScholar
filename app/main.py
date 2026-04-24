@@ -8,6 +8,8 @@ from app.database import db
 from app.services.pdf_processor import pdf_processor
 from app.services.llm_service import llm_service
 
+from app.services.graph_service import graph_service
+
 # Yuklenen dosyalarin gecici olarak tutulacagi klasor
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
@@ -38,7 +40,7 @@ async def root():
 @app.post("/analyze-pdf")
 async def analyze_pdf(file: UploadFile = File(...)):
     """
-    Bir PDF dosyasi alir, metnini cikarir ve Gemini ile analiz eder.
+    Bir PDF dosyasi alir, metnini cikarir, Gemini ile analiz eder ve Neo4j'ye kaydeder.
     """
     if not file.filename.endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Sadece PDF dosyalari kabul edilir.")
@@ -59,8 +61,14 @@ async def analyze_pdf(file: UploadFile = File(...)):
         # 3. Gemini ile analiz et
         metadata = llm_service.extract_metadata(raw_text)
         
+        # 4. Neo4j Graph Veritabanina Kaydet
+        if metadata:
+            graph_service.add_paper_with_metadata(metadata)
+        
         return {
             "filename": file.filename,
+            "status": "success",
+            "saved_to_graph": bool(metadata),
             "analysis": metadata
         }
         
