@@ -38,7 +38,7 @@ const Topbar = ({ activeTab, setActiveTab, libraryStats }) => {
                     <img src="/logo.png" alt="GraphScholar" className="brand-logo topbar-brand-logo" />
                     <div className="topbar-brand-copy">
                         <strong>GraphScholar</strong>
-                        <span>Research Workspace</span>
+                        <span>Akademik araştırma çalışma alanı</span>
                     </div>
                 </button>
 

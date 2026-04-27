@@ -291,6 +291,46 @@ button {
   flex-shrink: 0;
 }
 
+.topbar-brand-identity {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 360px;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.topbar-brand-logo {
+  width: 68px;
+  height: 68px;
+  border-radius: 18px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 10px 24px rgba(138, 99, 210, 0.1);
+}
+
+.topbar-brand-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.topbar-brand-copy strong {
+  font-size: 1.18rem;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+
+.topbar-brand-copy span {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.4;
+  max-width: 28ch;
+}
+
 .topbar-copy h1,
 .page-header h2,
 .hero-card h2,
