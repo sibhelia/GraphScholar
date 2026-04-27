@@ -7,6 +7,7 @@ import ChatView from './components/ChatView';
 import LibraryView from './components/LibraryView';
 import AnalyticsView from './components/AnalyticsView';
 import DashboardView from './components/DashboardView';
+import WorkspaceView from './components/WorkspaceView';
 import { searchApi } from './services/api';
 
 function App() {
@@ -90,7 +91,7 @@ function App() {
 
   return (
     <div className="app-shell">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} papers={papers} />
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
       <div className="workspace-shell">
         <Topbar activeTab={activeTab} libraryStats={libraryStats} />
@@ -111,6 +112,14 @@ function App() {
               onSendMessage={handleSendMessage}
               isLoading={isLoading}
               papers={papers}
+            />
+          )}
+
+          {activeTab === 'workspace' && (
+            <WorkspaceView
+              papers={papers}
+              libraryStats={libraryStats}
+              setActiveTab={setActiveTab}
             />
           )}
 

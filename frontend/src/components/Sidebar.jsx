@@ -1,15 +1,21 @@
-import { BookOpen, Share2, MessageSquare, TrendingUp, LayoutGrid } from 'lucide-react';
+import {
+    BookOpen,
+    FolderKanban,
+    LayoutGrid,
+    MessageSquare,
+    Share2,
+    TrendingUp,
+} from 'lucide-react';
 
-const Sidebar = ({ activeTab, setActiveTab, papers = [] }) => {
+const Sidebar = ({ activeTab, setActiveTab }) => {
     const menuItems = [
-        { id: 'dashboard', icon: LayoutGrid, label: 'Genel Bakış', note: 'çalışma alanı özeti' },
+        { id: 'dashboard', icon: LayoutGrid, label: 'Genel Bakış', note: 'özet görünüm' },
         { id: 'chat', icon: MessageSquare, label: 'Araştırma Asistanı', note: 'sor ve incele' },
+        { id: 'workspace', icon: FolderKanban, label: 'Çalışma Alanı', note: 'kayıtlar ve düzen' },
         { id: 'graph', icon: Share2, label: 'Bilgi Grafiği', note: 'makale ilişkileri' },
         { id: 'library', icon: BookOpen, label: 'Kütüphane', note: 'belgeler ve kavramlar' },
         { id: 'analytics', icon: TrendingUp, label: 'Analitik', note: 'sinyaller ve boşluklar' },
     ];
-
-    const recentPapers = papers.slice(0, 3);
 
     return (
         <aside className="sidebar-shell">
@@ -40,31 +46,6 @@ const Sidebar = ({ activeTab, setActiveTab, papers = [] }) => {
                         </button>
                     ))}
                 </nav>
-            </div>
-
-            <div className="sidebar-section sidebar-card">
-                <div className="sidebar-kicker">Çalışma Alanı</div>
-                <div className="sidebar-metric">
-                    <strong>{papers.length}</strong>
-                    <span>indekslenen makale</span>
-                </div>
-                <div className="sidebar-mini-list">
-                    {recentPapers.length === 0 && (
-                        <div className="sidebar-mini-empty">
-                            Grafiği oluşturmak için ilk makaleni yükle.
-                        </div>
-                    )}
-                    {recentPapers.map((paper) => (
-                        <button
-                            key={paper.id}
-                            className="sidebar-mini-item"
-                            onClick={() => setActiveTab('library')}
-                        >
-                            <span>{paper.title}</span>
-                            <small>{paper.year || 'yıl yok'}</small>
-                        </button>
-                    ))}
-                </div>
             </div>
         </aside>
     );

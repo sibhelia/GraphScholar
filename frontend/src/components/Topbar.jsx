@@ -3,6 +3,7 @@ import { Bell, BookMarked, Orbit, User } from 'lucide-react';
 const TAB_TITLES = {
     dashboard: 'Genel Bakış',
     chat: 'Araştırma Asistanı',
+    workspace: 'Çalışma Alanı',
     graph: 'Bilgi Grafiği',
     library: 'Kütüphane',
     analytics: 'Analitik',
