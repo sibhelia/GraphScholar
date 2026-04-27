@@ -98,9 +98,7 @@ const LibraryView = ({ onUpload, isUploading, uploadStatus, papers = [], library
                                     <Calendar size={14} />
                                     <span>{paper.year || 'Yıl yok'}</span>
                                 </div>
-                                <span className="info-chip strong">
-                                    {paper.citation_count ?? 0} atıf
-                                </span>
+                                <span className="info-chip strong">{paper.citation_count ?? 0} atıf</span>
                             </div>
 
                             <div className="library-paper-mainicon">

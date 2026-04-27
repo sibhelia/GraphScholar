@@ -5,6 +5,7 @@ import {
     FolderKanban,
     MessageSquare,
     Orbit,
+    Search,
     Share2,
     TrendingUp,
     User,
@@ -38,11 +39,15 @@ const Topbar = ({ activeTab, setActiveTab, libraryStats }) => {
                     <img src="/logo.png" alt="GraphScholar" className="brand-logo topbar-brand-logo" />
                     <div className="topbar-brand-copy">
                         <strong>GraphScholar</strong>
-                        <span>Akademik araştırma çalışma alanı</span>
+                        <span>Academic Research Workspace</span>
                     </div>
                 </button>
 
-                <div className="topbar-actions enterprise-topbar-actions">
+                <div className="topbar-utility-bar">
+                    <div className="topbar-chip enterprise-chip">
+                        <Search size={14} />
+                        <span>Yerel arama hazır</span>
+                    </div>
                     <div className="topbar-chip enterprise-chip">
                         <Orbit size={14} />
                         <span>{libraryStats?.concept_count ?? 0} kavram</span>
