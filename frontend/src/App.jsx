@@ -1,17 +1,15 @@
 import { useEffect, useState } from 'react';
-import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 import Footer from './components/Footer';
 import GraphView from './components/GraphView';
 import ChatView from './components/ChatView';
 import LibraryView from './components/LibraryView';
 import AnalyticsView from './components/AnalyticsView';
-import DashboardView from './components/DashboardView';
 import WorkspaceView from './components/WorkspaceView';
 import { searchApi } from './services/api';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('chat');
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -91,21 +89,14 @@ function App() {
 
   return (
     <div className="app-shell">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-
       <div className="workspace-shell">
-        <Topbar activeTab={activeTab} libraryStats={libraryStats} />
+        <Topbar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          libraryStats={libraryStats}
+        />
 
         <main className="workspace-main">
-          {activeTab === 'dashboard' && (
-            <DashboardView
-              setActiveTab={setActiveTab}
-              papers={papers}
-              libraryStats={libraryStats}
-              graphData={graphData}
-            />
-          )}
-
           {activeTab === 'chat' && (
             <ChatView
               messages={messages}
