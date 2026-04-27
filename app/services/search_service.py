@@ -39,6 +39,7 @@ class SearchService:
 
         relevant_docs = vector_results.get("documents", [[]])[0]
         relevant_metadatas = vector_results.get("metadatas", [[]])[0]
+        relevant_distances = vector_results.get("distances", [[]])[0]
         
         # Hangi makalelerle ilgiliyiz?
         paper_titles = list(set([m.get("title") for m in relevant_metadatas if m.get("title")]))
@@ -81,10 +82,23 @@ class SearchService:
             contents=prompt
         )
 
+        sources = []
+        for idx, doc in enumerate(relevant_docs):
+            metadata = relevant_metadatas[idx] if idx < len(relevant_metadatas) else {}
+            distance = relevant_distances[idx] if idx < len(relevant_distances) else None
+            sources.append({
+                "title": metadata.get("title") or "Bilinmeyen Kaynak",
+                "paper_id": metadata.get("paper_id"),
+                "year": metadata.get("year"),
+                "excerpt": doc[:320].strip(),
+                "score": round(1 - distance, 4) if isinstance(distance, (int, float)) else None,
+            })
+
         return {
             "answer": response.text,
             "relevant_papers": paper_titles,
-            "source_chunks_count": len(relevant_docs)
+            "source_chunks_count": len(relevant_docs),
+            "sources": sources,
         }
 
 # Singleton nesnesi

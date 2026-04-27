@@ -1,27 +1,40 @@
-import React from 'react';
-import { User, Bell, HelpCircle } from 'lucide-react';
+import { Bell, BookMarked, Orbit, User } from 'lucide-react';
 
-const Topbar = () => {
+const TAB_TITLES = {
+    dashboard: 'Genel Bakış',
+    chat: 'Araştırma Asistanı',
+    graph: 'Bilgi Grafiği',
+    library: 'Kütüphane',
+    analytics: 'Analitik',
+};
+
+const Topbar = ({ activeTab, libraryStats }) => {
     return (
-        <header className="topbar">
-            <div className="system-status">
-                <div className="status-dot"></div>
-                <span>Sistem Çevrimiçi - Hibrit Veritabanı Aktif</span>
+        <header className="topbar-shell">
+            <div className="topbar-copy">
+                <div className="topbar-eyebrow">GraphScholar çalışma alanı</div>
+                <h1>{TAB_TITLES[activeTab] || 'Çalışma Alanı'}</h1>
             </div>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                <div style={{ display: 'flex', gap: '0.75rem', color: 'var(--text-secondary)' }}>
-                    <Bell size={18} style={{ cursor: 'pointer' }} />
-                    <HelpCircle size={18} style={{ cursor: 'pointer' }} />
+
+            <div className="topbar-actions">
+                <div className="topbar-chip">
+                    <Orbit size={14} />
+                    <span>{libraryStats?.concept_count ?? 0} kavram bağlı</span>
                 </div>
-                <div style={{ width: '1px', height: '20px', backgroundColor: 'var(--border-color)' }}></div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
-                    <div style={{ fontSize: '13px', fontWeight: '500', textAlign: 'right' }}>
-                        <div>Akademik Araştırmacı</div>
-                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>GraphScholar Pro</div>
+                <div className="topbar-chip">
+                    <BookMarked size={14} />
+                    <span>{libraryStats?.paper_count ?? 0} makale indekslendi</span>
+                </div>
+                <button className="topbar-icon-btn" type="button" aria-label="Bildirimler">
+                    <Bell size={16} />
+                </button>
+                <div className="topbar-profile">
+                    <div className="topbar-profile-copy">
+                        <strong>Araştırmacı</strong>
+                        <span>kişisel çalışma alanı</span>
                     </div>
-                    <div className="avatar">
-                        <User size={16} />
+                    <div className="topbar-avatar">
+                        <User size={15} />
                     </div>
                 </div>
             </div>

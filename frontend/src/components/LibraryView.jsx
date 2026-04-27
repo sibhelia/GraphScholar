@@ -1,61 +1,136 @@
-import React from 'react';
-import { Upload, Loader2, CheckCircle, FileText, Share2 } from 'lucide-react';
+import {
+    BookOpen,
+    Calendar,
+    CheckCircle,
+    FileText,
+    Loader2,
+    Quote,
+    Share2,
+    Sparkles,
+    Upload,
+} from 'lucide-react';
 
-const LibraryView = ({ onUpload, isUploading, uploadStatus }) => {
+const LibraryView = ({ onUpload, isUploading, uploadStatus, papers = [], libraryStats }) => {
+    const stats = [
+        { label: 'Makale', value: libraryStats?.paper_count ?? 0, icon: FileText },
+        { label: 'Yazar', value: libraryStats?.author_count ?? 0, icon: Share2 },
+        { label: 'Kavram', value: libraryStats?.concept_count ?? 0, icon: BookOpen },
+        { label: 'Parça', value: libraryStats?.chunk_count ?? 0, icon: Quote },
+    ];
+
+    const hasSuccessStatus = uploadStatus?.toLowerCase().includes('başarı');
+
     return (
-        <div style={{ padding: '2rem', height: '100%', overflowY: 'auto' }}>
-            <div style={{ marginBottom: '2rem' }}>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: '600', marginBottom: '0.5rem' }}>Kütüphanem</h2>
-                <p style={{ color: 'var(--text-secondary)' }}>Araştırma makalelerinizi buradan yönetebilir ve yeni dökümanlar ekleyebilirsiniz.</p>
+        <section className="page-scroll page-library">
+            <div className="page-header library-header-minimal">
+                <div>
+                    <div className="eyebrow">Kişisel korpus</div>
+                    <h2>Kütüphane</h2>
+                </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-                {/* Yukleme Alani */}
-                <div className="upload-section" style={{ border: 'none', background: 'transparent', padding: '0' }}>
-                    <label className={`upload-card ${isUploading ? 'loading' : ''}`} style={{ height: '300px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-                        <input 
-                            type="file" 
-                            accept=".pdf" 
-                            onChange={(e) => onUpload(e.target.files[0])}
-                            style={{ display: 'none' }}
-                            disabled={isUploading}
-                        />
-                        
-                        {isUploading ? (
-                            <Loader2 size={48} className="animate-spin" color="var(--accent-primary)" />
-                        ) : uploadStatus && uploadStatus.includes('Başarı') ? (
-                            <CheckCircle size={48} color="var(--success)" />
-                        ) : (
-                            <Upload size={48} color="var(--accent-primary)" />
-                        )}
-                        
-                        <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '1.1rem', fontWeight: '600', color: 'var(--text-primary)' }}>
-                                {isUploading ? 'Makale İşleniyor...' : 'Yeni Makale Yükle'}
-                            </div>
-                            <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-                                {uploadStatus || 'PDF dosyasını buraya sürükleyin veya tıklayın'}
-                            </div>
-                        </div>
-                    </label>
-                </div>
+            <section className="library-hero-card library-hero-card-minimal">
+                <label className={`upload-dropzone upload-dropzone-hero ${isUploading ? 'loading' : ''}`}>
+                    <input
+                        type="file"
+                        accept=".pdf"
+                        onChange={(e) => onUpload(e.target.files[0])}
+                        className="hidden-file-input"
+                        disabled={isUploading}
+                    />
 
-                {/* Mevcut Makaleler Ozeti (Gelistirilebilir) */}
-                <div style={{ border: '1px solid var(--border-color)', borderRadius: '4px', padding: '1.5rem' }}>
-                    <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Sistem Durumu</h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem' }}>
-                            <FileText size={16} color="var(--accent-primary)" />
-                            <span>Vektör Veritabanı Aktif</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem' }}>
-                            <Share2 size={16} color="var(--accent-primary)" />
-                            <span>Neo4j Grafik Bağlantısı Hazır</span>
-                        </div>
+                    <div className="upload-icon-wrap">
+                        {isUploading ? (
+                            <Loader2 size={28} className="animate-spin" />
+                        ) : hasSuccessStatus ? (
+                            <CheckCircle size={28} />
+                        ) : (
+                            <Upload size={28} />
+                        )}
+                    </div>
+
+                    <div className="upload-copy">
+                        <strong>{isUploading ? 'Yükleniyor' : 'PDF yükle'}</strong>
+                        <span>{uploadStatus || 'Dosya seç veya sürükle bırak'}</span>
+                    </div>
+                </label>
+
+                <div className="library-visual-panel">
+                    <div className="library-hero-badge">
+                        <Sparkles size={16} />
+                        <span>Düzenli görünüm</span>
+                    </div>
+
+                    <div className="library-visual-grid">
+                        {stats.map((stat) => (
+                            <article key={stat.label} className="library-visual-card">
+                                <div className="stat-icon">
+                                    <stat.icon size={16} />
+                                </div>
+                                <strong>{stat.value}</strong>
+                                <span>{stat.label}</span>
+                            </article>
+                        ))}
                     </div>
                 </div>
-            </div>
-        </div>
+            </section>
+
+            <section className="surface-card library-collection-card">
+                <div className="section-head library-section-head">
+                    <div>
+                        <div className="eyebrow">Koleksiyon</div>
+                        <h3>{papers.length} kayıt</h3>
+                    </div>
+                </div>
+
+                <div className="library-paper-grid">
+                    {papers.length === 0 && (
+                        <div className="empty-card library-empty-card">
+                            <BookOpen size={18} />
+                            <span>Henüz makale yok</span>
+                        </div>
+                    )}
+
+                    {papers.map((paper) => (
+                        <article key={paper.id} className="library-paper-card library-paper-card-visual">
+                            <div className="library-paper-topline">
+                                <div className="library-paper-year">
+                                    <Calendar size={14} />
+                                    <span>{paper.year || 'Yıl yok'}</span>
+                                </div>
+                                <span className="info-chip strong">
+                                    {paper.citation_count ?? 0} atıf
+                                </span>
+                            </div>
+
+                            <div className="library-paper-mainicon">
+                                <BookOpen size={20} />
+                            </div>
+
+                            <div className="library-paper-head">
+                                <div className="library-paper-title-block">
+                                    <h4>{paper.title}</h4>
+                                    <p>
+                                        {(paper.authors || []).slice(0, 3).join(', ') ||
+                                            'Yazar bilgisi yok'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="library-paper-footer">
+                                <div className="chip-row">
+                                    {(paper.concepts || []).slice(0, 3).map((concept) => (
+                                        <span key={concept} className="info-chip">
+                                            {concept}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        </article>
+                    ))}
+                </div>
+            </section>
+        </section>
     );
 };
 

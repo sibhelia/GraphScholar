@@ -1,53 +1,71 @@
-import React from 'react';
-import { BookOpen, Share2, MessageSquare, Search, TrendingUp, LayoutGrid } from 'lucide-react';
+import { BookOpen, Share2, MessageSquare, TrendingUp, LayoutGrid } from 'lucide-react';
 
-const Sidebar = ({ activeTab, setActiveTab }) => {
+const Sidebar = ({ activeTab, setActiveTab, papers = [] }) => {
     const menuItems = [
-        { id: 'dashboard', icon: LayoutGrid, label: 'Ana Panel' },
-        { id: 'chat', icon: MessageSquare, label: 'Komuta Merkezi' },
-        { id: 'graph', icon: Share2, label: 'Grafik Keşfi' },
-        { id: 'library', icon: BookOpen, label: 'Kütüphanem' },
-        { id: 'analytics', icon: TrendingUp, label: 'Analiz & Dashboard' },
+        { id: 'dashboard', icon: LayoutGrid, label: 'Genel Bakış', note: 'çalışma alanı özeti' },
+        { id: 'chat', icon: MessageSquare, label: 'Araştırma Asistanı', note: 'sor ve incele' },
+        { id: 'graph', icon: Share2, label: 'Bilgi Grafiği', note: 'makale ilişkileri' },
+        { id: 'library', icon: BookOpen, label: 'Kütüphane', note: 'belgeler ve kavramlar' },
+        { id: 'analytics', icon: TrendingUp, label: 'Analitik', note: 'sinyaller ve boşluklar' },
     ];
 
+    const recentPapers = papers.slice(0, 3);
+
     return (
-        <aside className="sidebar">
-            <div 
-                className="brand" 
-                style={{ padding: '0', justifyContent: 'center', height: '120px', backgroundColor: '#fff', borderBottom: 'none', cursor: 'pointer' }}
-                onClick={() => setActiveTab('dashboard')}
-            >
-                <img 
-                    src="/logo.png" 
-                    alt="GraphScholar" 
-                    style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '10px' }} 
-                />
+        <aside className="sidebar-shell">
+            <button className="brand-panel" onClick={() => setActiveTab('dashboard')}>
+                <img src="/logo.png" alt="GraphScholar" className="brand-logo" />
+                <div>
+                    <div className="brand-title">GraphScholar</div>
+                    <div className="brand-subtitle">Akademik araştırma çalışma alanı</div>
+                </div>
+            </button>
+
+            <div className="sidebar-section">
+                <div className="sidebar-kicker">Gezinme</div>
+                <nav className="nav-menu">
+                    {menuItems.map((item) => (
+                        <button
+                            key={item.id}
+                            className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
+                            onClick={() => setActiveTab(item.id)}
+                        >
+                            <div className="nav-icon-wrap">
+                                <item.icon size={16} />
+                            </div>
+                            <div className="nav-copy">
+                                <span>{item.label}</span>
+                                <small>{item.note}</small>
+                            </div>
+                        </button>
+                    ))}
+                </nav>
             </div>
 
-            {/* Yeni Search Bar - Daha belirgin ve etkilesimli */}
-            <div style={{ padding: '1.25rem 1rem 1rem 1rem' }}>
-                <div style={{ position: 'relative', width: '100%' }}>
-                    <Search size={13} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
-                    <input 
-                        type="text" 
-                        className="search-input"
-                        placeholder="Hızlı arama..." 
-                    />
+            <div className="sidebar-section sidebar-card">
+                <div className="sidebar-kicker">Çalışma Alanı</div>
+                <div className="sidebar-metric">
+                    <strong>{papers.length}</strong>
+                    <span>indekslenen makale</span>
+                </div>
+                <div className="sidebar-mini-list">
+                    {recentPapers.length === 0 && (
+                        <div className="sidebar-mini-empty">
+                            Grafiği oluşturmak için ilk makaleni yükle.
+                        </div>
+                    )}
+                    {recentPapers.map((paper) => (
+                        <button
+                            key={paper.id}
+                            className="sidebar-mini-item"
+                            onClick={() => setActiveTab('library')}
+                        >
+                            <span>{paper.title}</span>
+                            <small>{paper.year || 'yıl yok'}</small>
+                        </button>
+                    ))}
                 </div>
             </div>
-
-            <nav className="nav-menu">
-                {menuItems.map((item) => (
-                    <div 
-                        key={item.id}
-                        className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
-                        onClick={() => setActiveTab(item.id)}
-                    >
-                        <item.icon size={16} />
-                        <span>{item.label}</span>
-                    </div>
-                ))}
-            </nav>
         </aside>
     );
 };

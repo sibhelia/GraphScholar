@@ -19,6 +19,9 @@ export const searchApi = {
     },
     query: (question) => api.post('/query', { question }),
     health: () => api.get('/health'),
+    getPapers: () => api.get('/papers'),
+    getLibraryOverview: () => api.get('/library/overview'),
+    getGraph: () => api.get('/graph'),
 };
 
 export default api;

@@ -128,3 +128,38 @@ async def query_system(request: QueryRequest):
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+@app.get("/papers")
+async def list_papers():
+    try:
+        papers = graph_service.list_papers()
+        return {
+            "papers": papers,
+            "count": len(papers),
+        }
+    except Exception as e:
+        print(f"Makale listeleme hatasi: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/library/overview")
+async def library_overview():
+    try:
+        stats = graph_service.get_library_stats()
+        chunk_count = vector_service.collection.count()
+        return {
+            "stats": {
+                **stats,
+                "chunk_count": chunk_count,
+            }
+        }
+    except Exception as e:
+        print(f"Kutuphane ozet hatasi: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/graph")
+async def get_graph(limit: int = 40):
+    try:
+        return graph_service.get_graph_snapshot(limit=limit)
+    except Exception as e:
+        print(f"Grafik ozet hatasi: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
