@@ -17,7 +17,7 @@ const DashboardView = ({ setActiveTab, papers = [], libraryStats, graphData }) =
         },
         {
             title: 'Asistana sor',
-            description: 'Kendi korpusunda arama yap ve destekleyici pasajları incele.',
+            description: 'Kendi korpusunda arama yap ve destekleyici kaynak metinleri incele.',
             icon: MessageSquareText,
             action: () => setActiveTab('chat'),
         },
@@ -41,7 +41,7 @@ const DashboardView = ({ setActiveTab, papers = [], libraryStats, graphData }) =
                     <h2>Dağınık makaleleri sorgulanabilir bir akademik çalışma alanına dönüştür.</h2>
                     <p>
                         GraphScholar yüklediğin makaleleri indeksler, kavramları çıkarır,
-                        atıf yapısını haritalar ve soru-cevap sırasında kaynak pasajları görünür tutar.
+                        atıf yapısını haritalar ve soru-cevap sırasında kaynak metinleri görünür tutar.
                     </p>
                     <div className="hero-actions">
                         <button className="btn-primary btn-lg" onClick={() => setActiveTab('library')}>
@@ -158,7 +158,7 @@ const DashboardView = ({ setActiveTab, papers = [], libraryStats, graphData }) =
                         <div className="signal-card">
                             <Database size={18} />
                             <strong>Vektör arama</strong>
-                            <span>Parçalanmış pasajlar anlamsal arama ve kaynak gösterimi için hazır.</span>
+                            <span>İşlenmiş kaynak metinler anlamsal arama ve kaynak gösterimi için hazır.</span>
                         </div>
                         <div className="signal-card">
                             <GitBranch size={18} />

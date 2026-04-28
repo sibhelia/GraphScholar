@@ -93,7 +93,7 @@ const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [] 
                                         <div className="contradiction-alert">
                                             <AlertTriangle size={16} />
                                             <span>
-                                                <strong>Olası çelişki:</strong> kaynak pasajlar farklı
+                                                <strong>Olası çelişki:</strong> kaynak metinler farklı
                                                 metodolojik pozisyonlara işaret ediyor.
                                             </span>
                                         </div>
@@ -164,7 +164,7 @@ const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [] 
                                 placeholder={
                                     mode === 'discovery'
                                         ? 'Yöntemler, trendler veya makaleler arası bağlar hakkında sor...'
-                                        : 'Bir iddiayı, sonucu veya pasajı sorgula...'
+                                        : 'Bir iddiayı, sonucu veya kaynak metni sorgula...'
                                 }
                                 disabled={isLoading}
                             />

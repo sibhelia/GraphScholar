@@ -20,7 +20,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     return (
         <aside className="sidebar-shell">
             <button className="brand-panel" onClick={() => setActiveTab('dashboard')}>
-                <img src="/logo.png" alt="GraphScholar" className="brand-logo" />
+                <img src="/graphscholar-logo.png" alt="GraphScholar" className="brand-logo" />
                 <div>
                     <div className="brand-title">GraphScholar</div>
                     <div className="brand-subtitle">Akademik araştırma çalışma alanı</div>

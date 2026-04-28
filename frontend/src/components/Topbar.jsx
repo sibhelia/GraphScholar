@@ -36,10 +36,10 @@ const Topbar = ({ activeTab, setActiveTab, libraryStats }) => {
                     onClick={() => setActiveTab('workspace')}
                     aria-label="Çalışma Alanı'na dön"
                 >
-                    <img src="/logo.png" alt="GraphScholar" className="brand-logo topbar-brand-logo" />
+                    <img src="/graphscholar-logo.png" alt="GraphScholar" className="brand-logo topbar-brand-logo" />
                     <div className="topbar-brand-copy">
-                        <strong>GraphScholar</strong>
-                        <span>Academic Research Workspace</span>
+                        <strong style={{ color: 'var(--green2)', fontSize: '1.1rem' }}>GraphScholar</strong>
+                        <span>Akademik Araştırma Platformu</span>
                     </div>
                 </button>
 
@@ -76,9 +76,10 @@ const Topbar = ({ activeTab, setActiveTab, libraryStats }) => {
             </div>
 
             <div className="topbar-secondary-row enterprise-topbar-row">
-                <div className="topbar-page-indicator" aria-live="polite">
-                    <span>Aktif sayfa</span>
-                    <strong>{TAB_TITLES[activeTab] || 'Çalışma Alanı'}</strong>
+                <div className="topbar-page-indicator horizontal-indicator" aria-live="polite">
+                    <strong className="page-label">AKTİF SAYFA</strong>
+                    <span className="indicator-divider">|</span>
+                    <span className="page-value">{(TAB_TITLES[activeTab] || 'Çalışma Alanı').toLocaleUpperCase('tr-TR')}</span>
                 </div>
 
                 <nav className="top-nav-menu enterprise-top-nav" aria-label="Ana gezinme">
