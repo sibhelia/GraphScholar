@@ -11,7 +11,7 @@ import {
     Upload,
 } from 'lucide-react';
 
-const LibraryView = ({ onUpload, isUploading, uploadStatus, papers = [], libraryStats, setActiveTab }) => {
+const LibraryView = ({ onUpload, isUploading, uploadStatus, papers = [], libraryStats, setActiveTab, previousTab }) => {
     const stats = [
         { label: 'Makale', value: libraryStats?.paper_count ?? 0, icon: FileText },
         { label: 'Yazar', value: libraryStats?.author_count ?? 0, icon: Share2 },
@@ -26,7 +26,7 @@ const LibraryView = ({ onUpload, isUploading, uploadStatus, papers = [], library
             <div className="page-header library-header-minimal" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                 <button 
                     className="btn-back"
-                    onClick={() => setActiveTab('chat')}
+                    onClick={() => setActiveTab(previousTab || 'chat')}
                     style={{ 
                         background: '#f1f5f9', 
                         border: '1px solid #e2e8f0', 

@@ -10,6 +10,14 @@ import { searchApi } from './services/api';
 
 function App() {
   const [activeTab, setActiveTab] = useState('chat');
+  const [previousTab, setPreviousTab] = useState('chat');
+
+  const handleTabChange = (tab) => {
+    if (tab !== activeTab) {
+      setPreviousTab(activeTab);
+      setActiveTab(tab);
+    }
+  };
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -138,7 +146,7 @@ function App() {
       <div className="workspace-shell">
         <Topbar
           activeTab={activeTab}
-          setActiveTab={setActiveTab}
+          setActiveTab={handleTabChange}
           libraryStats={libraryStats}
         />
 
@@ -150,7 +158,7 @@ function App() {
               onAddPaper={handleAddPaper}
               isLoading={isLoading}
               papers={papers}
-              setActiveTab={setActiveTab}
+              setActiveTab={handleTabChange}
             />
           )}
 
@@ -158,7 +166,7 @@ function App() {
             <WorkspaceView
               papers={papers}
               libraryStats={libraryStats}
-              setActiveTab={setActiveTab}
+              setActiveTab={handleTabChange}
             />
           )}
 
@@ -171,7 +179,8 @@ function App() {
               uploadStatus={uploadStatus}
               papers={papers}
               libraryStats={libraryStats}
-              setActiveTab={setActiveTab}
+              setActiveTab={handleTabChange}
+              previousTab={previousTab}
             />
           )}
 
