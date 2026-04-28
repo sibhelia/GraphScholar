@@ -150,6 +150,7 @@ function App() {
               onAddPaper={handleAddPaper}
               isLoading={isLoading}
               papers={papers}
+              setActiveTab={setActiveTab}
             />
           )}
 
@@ -170,6 +171,7 @@ function App() {
               uploadStatus={uploadStatus}
               papers={papers}
               libraryStats={libraryStats}
+              setActiveTab={setActiveTab}
             />
           )}
 

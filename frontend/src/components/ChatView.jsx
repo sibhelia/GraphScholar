@@ -4,7 +4,7 @@ import MarkdownIt from 'markdown-it';
 
 const md = new MarkdownIt();
 
-const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [] }) => {
+const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [], setActiveTab }) => {
     const [input, setInput] = useState('');
     const [mode, setMode] = useState('discovery');
     const [source, setSource] = useState('private');
@@ -26,7 +26,7 @@ const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [] 
         if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
-    }, [messages]);
+    }, [messages, isLoading]);
 
     const handleSend = () => {
         if (!input.trim() || isLoading) return;
@@ -83,8 +83,8 @@ const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [] 
                     <div className="chat-container modern" ref={scrollRef}>
                         {messages.length === 0 && (
                             <div className="chat-empty-state" style={{ height: '100%', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                <div className="chat-empty-icon" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', border: 'none', width: '64px', height: '64px' }}>
-                                    <BotMessageSquare size={36} />
+                                <div className="chat-empty-icon" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', border: 'none', width: '80px', height: '80px' }}>
+                                    <BotMessageSquare size={48} />
                                 </div>
                                 <h3 style={{ marginTop: '16px', color: '#0f172a' }}>Akıllı Araştırma Asistanına Hoş Geldiniz</h3>
                                 <p style={{ maxWidth: '600px', margin: '10px auto 24px', color: '#64748b', lineHeight: '1.6' }}>
@@ -107,8 +107,8 @@ const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [] 
 
                         {messages.map((msg, idx) => (
                             <div key={idx} className={`message-row ${msg.role === 'user' ? 'user' : 'assistant'}`}>
-                                <div className="avatar" style={msg.role === 'user' ? { background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0'} : { background: 'rgba(59, 130, 246, 0.1)', color: '#2563eb', border: 'none' }}>
-                                    {msg.role === 'user' ? <User size={16} /> : <Bot size={16} />}
+                                <div className={`avatar${msg.role === 'assistant' ? ' assistant-avatar' : ''}`} style={msg.role === 'user' ? { background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0'} : {}}>
+                                    {msg.role === 'user' ? <User size={18} /> : <Bot size={28} />}
                                 </div>
 
                                 <div className="message-bubble" style={msg.role === 'user' ? { background: '#f1f5f9', color: '#0f172a', border: '1px solid #e2e8f0'} : { background: '#ffffff', color: '#334155', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)'}}>
@@ -164,8 +164,8 @@ const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [] 
 
                         {isLoading && (
                             <div className="message-row assistant">
-                                <div className="avatar" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#2563eb', border: 'none' }}>
-                                    <Loader2 size={16} className="animate-spin" />
+                                <div className="avatar assistant-avatar" style={{ border: 'none' }}>
+                                    <Loader2 size={24} className="animate-spin" />
                                 </div>
                                 <div className="message-bubble loading-bubble" style={{ background: 'transparent', border: 'none', color: '#64748b' }}>
                                     {mode === 'discovery'
@@ -174,6 +174,7 @@ const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [] 
                                 </div>
                             </div>
                         )}
+                        <div />
                     </div>
 
                     <div className="chat-input-area modern" style={{ background: '#ffffff', borderTop: '1px solid #e2e8f0' }}>
@@ -194,8 +195,13 @@ const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [] 
                                 style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#0f172a' }}
                             />
                         </div>
-                        <button className="btn-primary btn-send" onClick={handleSend} disabled={isLoading || !input.trim()} style={{ background: '#2563eb', boxShadow: '0 4px 14px rgba(37, 99, 235, 0.3)' }}>
-                            <Send size={18} />
+                        <button 
+                            className="btn-primary btn-send" 
+                            onClick={handleSend} 
+                            disabled={isLoading || !input.trim()} 
+                            style={{ background: '#10b981', boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)', borderRadius: '12px', width: '48px', height: '48px' }}
+                        >
+                            <Send size={22} />
                         </button>
                     </div>
                 </div>
@@ -203,17 +209,19 @@ const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [] 
                 <aside className="chat-context-panel" style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '10px' }}>
                     <div className="surface-card compact-pad" style={{ background: '#ffffff', borderColor: '#e2e8f0', flex: 1.5, display: 'flex', flexDirection: 'column' }}>
                         <div className="eyebrow" style={{ color: '#64748b' }}>KÜTÜPHANE DURUMU</div>
-                        <h3 style={{ color: '#0f172a', fontSize: '1.1rem', marginBottom: '8px' }}>{stats.papers || papers.length} Makale Analizi Tamam</h3>
+                        <h3 style={{ color: '#0f172a', fontSize: '1.1rem', marginBottom: '8px' }}>
+                            Akademik Kütüphaneniz
+                        </h3>
                         
                         <div style={{ fontSize: '0.8rem', color: '#475569', lineHeight: '1.5', flex: 1 }}>
                             <p style={{ marginBottom: '8px' }}>
-                                Sistemimiz kütüphanenizi <strong>{stats.chunk_count || 0}</strong> bilgi parçasına ayırarak akıllı hafızasına aldı.
+                                Kütüphanenizde bulunan <strong>{stats.papers || papers.length} makale</strong>, <strong>{stats.chunk_count || 0}</strong> ayrı bilgi parçasına bölünerek sisteme işlendi.
                             </p>
                             <p style={{ marginBottom: '8px' }}>
-                                Literatürünüzden <strong>{stats.nodes || 0}</strong> kritik kavram ve <strong>{stats.edges || 0}</strong> stratejik bağ tanımlandı.
+                                Literatür içerisinden <strong>{stats.nodes || 0}</strong> akademik kavram ve <strong>{stats.edges || 0}</strong> stratejik ilişki haritalandı.
                             </p>
                             <p>
-                                Artık tüm dokümanlarınız üzerinden derinlemesine analiz yapmaya hazırdır.
+                                Sistem şu an bu verileri kullanarak sorularınıza <strong>kanıtlı ve hızlı</strong> yanıtlar üretmeye hazır.
                             </p>
                         </div>
 
@@ -226,30 +234,40 @@ const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [] 
                                     alignItems: 'center', 
                                     justifyContent: 'center', 
                                     gap: '8px', 
-                                    fontSize: '0.75rem',
-                                    padding: '10px',
-                                    borderRadius: '8px',
-                                    background: '#f1f5f9',
-                                    border: '1px solid #e2e8f0',
-                                    color: '#475569',
+                                    fontSize: '0.8rem',
+                                    padding: '12px',
+                                    borderRadius: '10px',
+                                    background: 'rgba(16, 185, 129, 0.1)',
+                                    border: '1px solid rgba(16, 185, 129, 0.2)',
+                                    color: '#059669',
+                                    fontWeight: '600',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s'
                                 }}
-                                onClick={() => window.location.hash = '#/library'}
-                                onMouseOver={(e) => { e.currentTarget.style.background = '#e2e8f0'; e.currentTarget.style.color = '#0f172a'; }}
-                                onMouseOut={(e) => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#475569'; }}
+                                onClick={() => setActiveTab && setActiveTab('library')}
+                                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(16, 185, 129, 0.2)'; }}
+                                onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)'; }}
                             >
-                                <Database size={13} /> Kütüphaneyi Yönet
+                                <Database size={14} /> Kütüphaneyi Yönet
                             </button>
                         </div>
                     </div>
                     
                     <div className="surface-card compact-pad" style={{ background: '#ffffff', borderColor: '#e2e8f0', flex: 1, display: 'flex', flexDirection: 'column' }}>
                         <div className="eyebrow" style={{ color: '#64748b' }}>SİSTEM YETENEKLERİ</div>
-                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '0.8rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: '10px', flex: 1, justifyContent: 'center' }}>
-                            <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }}></div> Hibrit Arama (Vektör + Grafik)</li>
-                            <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#3b82f6' }}></div> Kaynak Metin (Pasaj) Getirme</li>
-                            <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f59e0b' }}></div> Çelişki Tespiti</li>
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '0.8rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: '14px', flex: 1, justifyContent: 'center' }}>
+                            <li style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                                <Compass size={22} style={{ color: '#10b981', marginTop: '1px', flexShrink: 0 }} />
+                                <span>Vektör ve Grafik veritabanlarını kullanarak hibrit arama yapar.</span>
+                            </li>
+                            <li style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                                <FileText size={22} style={{ color: '#3b82f6', marginTop: '1px', flexShrink: 0 }} />
+                                <span>Cevapları doğrudan orijinal kaynak metinlere dayandırır.</span>
+                            </li>
+                            <li style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                                <AlertTriangle size={22} style={{ color: '#f59e0b', marginTop: '1px', flexShrink: 0 }} />
+                                <span>Farklı makaleler arasındaki metodolojik çelişkileri tespit eder.</span>
+                            </li>
                         </ul>
                     </div>
                 </aside>

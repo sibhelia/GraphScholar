@@ -7,10 +7,11 @@ import {
     Quote,
     Share2,
     Sparkles,
+    ArrowLeft,
     Upload,
 } from 'lucide-react';
 
-const LibraryView = ({ onUpload, isUploading, uploadStatus, papers = [], libraryStats }) => {
+const LibraryView = ({ onUpload, isUploading, uploadStatus, papers = [], libraryStats, setActiveTab }) => {
     const stats = [
         { label: 'Makale', value: libraryStats?.paper_count ?? 0, icon: FileText },
         { label: 'Yazar', value: libraryStats?.author_count ?? 0, icon: Share2 },
@@ -22,7 +23,27 @@ const LibraryView = ({ onUpload, isUploading, uploadStatus, papers = [], library
 
     return (
         <section className="page-scroll page-library">
-            <div className="page-header library-header-minimal">
+            <div className="page-header library-header-minimal" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                <button 
+                    className="btn-back"
+                    onClick={() => setActiveTab('chat')}
+                    style={{ 
+                        background: '#f1f5f9', 
+                        border: '1px solid #e2e8f0', 
+                        borderRadius: '10px', 
+                        width: '40px', 
+                        height: '40px', 
+                        display: 'grid', 
+                        placeItems: 'center', 
+                        color: '#475569',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                    }}
+                    onMouseOver={(e) => { e.currentTarget.style.background = '#e2e8f0'; e.currentTarget.style.color = '#0f172a'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#475569'; }}
+                >
+                    <ArrowLeft size={20} />
+                </button>
                 <div>
                     <div className="eyebrow">Kişisel korpus</div>
                     <h2>Kütüphane</h2>
