@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { AlertTriangle, BookOpen, Bot, Compass, Filter, Globe, Loader2, Lock, Send, User } from 'lucide-react';
+import { AlertTriangle, BookOpen, Bot, BotMessageSquare, Compass, Filter, Globe, Loader2, Lock, Send, User, Database, Network, FileText, Zap, Cpu } from 'lucide-react';
 import MarkdownIt from 'markdown-it';
 
 const md = new MarkdownIt();
@@ -9,6 +9,18 @@ const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [] 
     const [mode, setMode] = useState('discovery');
     const [source, setSource] = useState('private');
     const scrollRef = useRef(null);
+    const [stats, setStats] = useState({ papers: papers.length, chunk_count: 0, nodes: 0, edges: 0 });
+
+    useEffect(() => {
+        fetch('http://localhost:8000/library/overview')
+            .then(res => res.json())
+            .then(data => {
+                if (data.stats) {
+                    setStats(prev => ({ ...prev, ...data.stats }));
+                }
+            })
+            .catch(err => console.error("Stats API error:", err));
+    }, [papers]);
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -70,13 +82,14 @@ const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [] 
                 <div className="chat-shell">
                     <div className="chat-container modern" ref={scrollRef}>
                         {messages.length === 0 && (
-                            <div className="chat-empty-state">
-                                <div className="chat-empty-icon" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#2563eb', border: 'none' }}>
-                                    <Bot size={32} />
+                            <div className="chat-empty-state" style={{ height: '100%', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                <div className="chat-empty-icon" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', border: 'none', width: '64px', height: '64px' }}>
+                                    <BotMessageSquare size={36} />
                                 </div>
-                                <h3>Araştırmanıza Nasıl Yardımcı Olabilirim?</h3>
-                                <p style={{ maxWidth: '500px', margin: '0 auto 20px', color: '#64748b' }}>
-                                    Makalelerinizdeki yöntemleri karşılaştırabilir, kavram haritalarını sorgulayabilir veya belirli bir yazarın çalışmalarını özetleyebilirim.
+                                <h3 style={{ marginTop: '16px', color: '#0f172a' }}>Akıllı Araştırma Asistanına Hoş Geldiniz</h3>
+                                <p style={{ maxWidth: '600px', margin: '10px auto 24px', color: '#64748b', lineHeight: '1.6' }}>
+                                    Ben sizin kişisel akademik yapay zekanızım. Kütüphanenize yüklediğiniz makaleleri okuyabilir, analiz edebilir ve kendi aralarında bağ kurabilirim.<br/><br/>
+                                    <strong>Neler yapabiliriz?</strong> Makaleler arası yöntemleri karşılaştırabiliriz, çelişen bulguları tespit edebiliriz, karmaşık kavramları sadeleştirebiliriz veya belirli bir makaleden doğrudan kaynak/pasaj çekebiliriz. 
                                 </p>
                                 <div className="prompt-list" style={{ justifyContent: 'center' }}>
                                     <button className="prompt-chip" onClick={() => setInput('Mevcut makaleler arasındaki en temel metodolojik farklılıklar nelerdir?')}>
@@ -187,34 +200,57 @@ const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [] 
                     </div>
                 </div>
 
-                <aside className="chat-context-panel">
-                    <div className="surface-card compact-pad" style={{ background: '#ffffff', borderColor: '#e2e8f0' }}>
-                        <div className="eyebrow" style={{ color: '#64748b' }}>KORPUS DURUMU</div>
-                        <h3 style={{ color: '#0f172a', fontSize: '1.2rem', marginBottom: '8px' }}>{papers.length} Makale İndekslendi</h3>
-                        <p style={{ fontSize: '0.8rem', color: '#475569', lineHeight: '1.5' }}>
-                            Sistem şu anda yüklediğiniz belgelerdeki kavramları, algoritmaları ve atıf ağlarını Graph ve Vector veritabanlarında çapraz sorgulayabilir.
-                        </p>
-                    </div>
-                    
-                    <div className="surface-card compact-pad" style={{ background: '#ffffff', borderColor: '#e2e8f0' }}>
-                        <div className="eyebrow" style={{ color: '#64748b' }}>SİSTEM YETENEKLERİ</div>
-                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '0.8rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <li style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }}></div> Hibrid Arama (Vektör + Grafik)</li>
-                            <li style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#3b82f6' }}></div> Kaynak Metin (Pasaj) Getirme</li>
-                            <li style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f59e0b' }}></div> Çelişki Tespiti</li>
-                        </ul>
-                    </div>
+                <aside className="chat-context-panel" style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '10px' }}>
+                    <div className="surface-card compact-pad" style={{ background: '#ffffff', borderColor: '#e2e8f0', flex: 1.5, display: 'flex', flexDirection: 'column' }}>
+                        <div className="eyebrow" style={{ color: '#64748b' }}>KÜTÜPHANE DURUMU</div>
+                        <h3 style={{ color: '#0f172a', fontSize: '1.1rem', marginBottom: '8px' }}>{stats.papers || papers.length} Makale Analizi Tamam</h3>
+                        
+                        <div style={{ fontSize: '0.8rem', color: '#475569', lineHeight: '1.5', flex: 1 }}>
+                            <p style={{ marginBottom: '8px' }}>
+                                Sistemimiz kütüphanenizi <strong>{stats.chunk_count || 0}</strong> bilgi parçasına ayırarak akıllı hafızasına aldı.
+                            </p>
+                            <p style={{ marginBottom: '8px' }}>
+                                Literatürünüzden <strong>{stats.nodes || 0}</strong> kritik kavram ve <strong>{stats.edges || 0}</strong> stratejik bağ tanımlandı.
+                            </p>
+                            <p>
+                                Artık tüm dokümanlarınız üzerinden derinlemesine analiz yapmaya hazırdır.
+                            </p>
+                        </div>
 
-                    <div className="surface-card compact-pad" style={{ background: '#ffffff', borderColor: '#e2e8f0' }}>
-                        <div className="eyebrow" style={{ color: '#64748b' }}>ÖNERİLEN SORULAR</div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
-                            <button className="text-link" style={{ textAlign: 'left', lineHeight: '1.4', color: '#2563eb' }} onClick={() => setInput('Bu makalelerde öne çıkan ana paradigmalar nelerdir?')}>
-                                • Öne çıkan ana paradigmalar nelerdir?
-                            </button>
-                            <button className="text-link" style={{ textAlign: 'left', lineHeight: '1.4', color: '#2563eb' }} onClick={() => setInput('Yazarların ortaklaşa çalıştığı kavramları listele.')}>
-                                • Ortak çalışılan kavramları listele.
+                        <div style={{ marginTop: 'auto', paddingTop: '10px' }}>
+                            <button 
+                                className="btn-secondary" 
+                                style={{ 
+                                    width: '100%', 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center', 
+                                    gap: '8px', 
+                                    fontSize: '0.75rem',
+                                    padding: '10px',
+                                    borderRadius: '8px',
+                                    background: '#f1f5f9',
+                                    border: '1px solid #e2e8f0',
+                                    color: '#475569',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                                onClick={() => window.location.hash = '#/library'}
+                                onMouseOver={(e) => { e.currentTarget.style.background = '#e2e8f0'; e.currentTarget.style.color = '#0f172a'; }}
+                                onMouseOut={(e) => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#475569'; }}
+                            >
+                                <Database size={13} /> Kütüphaneyi Yönet
                             </button>
                         </div>
+                    </div>
+                    
+                    <div className="surface-card compact-pad" style={{ background: '#ffffff', borderColor: '#e2e8f0', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                        <div className="eyebrow" style={{ color: '#64748b' }}>SİSTEM YETENEKLERİ</div>
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '0.8rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: '10px', flex: 1, justifyContent: 'center' }}>
+                            <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }}></div> Hibrit Arama (Vektör + Grafik)</li>
+                            <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#3b82f6' }}></div> Kaynak Metin (Pasaj) Getirme</li>
+                            <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f59e0b' }}></div> Çelişki Tespiti</li>
+                        </ul>
                     </div>
                 </aside>
             </div>
