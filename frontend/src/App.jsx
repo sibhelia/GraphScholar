@@ -61,21 +61,51 @@ function App() {
     }
   };
 
-  const handleSendMessage = async (text) => {
+  const handleSendMessage = async (text, options = {}) => {
+    const { mode = 'discovery', source = 'private' } = options;
     const newUserMsg = { role: 'user', text };
     setMessages((prev) => [...prev, newUserMsg]);
     setIsLoading(true);
 
     try {
-      const response = await searchApi.query(text);
-      const aiMsg = {
-        role: 'assistant',
-        text: response.data.answer,
-        papers: response.data.relevant_papers,
-        chunks_count: response.data.source_chunks_count,
-        sources: response.data.sources || [],
-      };
-      setMessages((prev) => [...prev, aiMsg]);
+      if (source === 'global') {
+        // ArXiv Araması Yap
+        const response = await searchApi.searchArxiv(text);
+        const results = response.data.results;
+
+        if (results.length === 0) {
+          setMessages((prev) => [...prev, {
+            role: 'assistant',
+            text: `ArXiv'de "${text}" ile ilgili makale bulamadım. Farklı anahtar kelimeler deneyebilirsin.`
+          }]);
+        } else {
+          const aiMsg = {
+            role: 'assistant',
+            text: `"${text}" konusuyla ilgili ArXiv'de şu makaleleri buldum:`,
+            isSearchResult: true,
+            sources: results.map(r => ({
+              title: r.title,
+              excerpt: r.summary,
+              year: r.published,
+              paper_id: r.arxiv_id,
+              authors: r.authors,
+              canAdd: true
+            }))
+          };
+          setMessages((prev) => [...prev, aiMsg]);
+        }
+      } else {
+        // Mevcut Kütüphanede Hibrit Arama Yap (RAG)
+        const response = await searchApi.query(text);
+        const aiMsg = {
+          role: 'assistant',
+          text: response.data.answer,
+          papers: response.data.relevant_papers,
+          chunks_count: response.data.source_chunks_count,
+          sources: response.data.sources || [],
+        };
+        setMessages((prev) => [...prev, aiMsg]);
+      }
     } catch (error) {
       console.error('Sorgu hatası:', error);
       setMessages((prev) => [
@@ -84,6 +114,22 @@ function App() {
       ]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleAddPaper = async (title) => {
+    try {
+      setUploadStatus(`Makale ekleniyor: ${title}...`);
+      setIsUploading(true);
+      await searchApi.addPaperFromArxiv(title);
+      await loadWorkspaceData();
+      setUploadStatus(`"${title}" kütüphaneye eklendi!`);
+      setTimeout(() => setUploadStatus(''), 3000);
+    } catch (error) {
+      console.error('Makale ekleme hatası:', error);
+      setUploadStatus('Makale eklenirken bir hata oluştu.');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -101,6 +147,7 @@ function App() {
             <ChatView
               messages={messages}
               onSendMessage={handleSendMessage}
+              onAddPaper={handleAddPaper}
               isLoading={isLoading}
               papers={papers}
             />

@@ -22,6 +22,8 @@ export const searchApi = {
     getPapers: () => api.get('/papers'),
     getLibraryOverview: () => api.get('/library/overview'),
     getGraph: () => api.get('/graph'),
+    searchArxiv: (query) => api.get(`/search-arxiv?q=${query}`),
+    addPaperFromArxiv: (title) => api.post('/add-from-arxiv', { title }),
 };
 
 export default api;

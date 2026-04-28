@@ -38,5 +38,31 @@ class ArXivService:
             print(f"ArXiv arama hatasi ({title}): {e}")
             return None
 
+    def search_papers(self, query: str, max_results: int = 5):
+        """
+        Verilen anahtar kelimeye gore ArXiv'de arama yapar ve liste doner.
+        """
+        try:
+            search = arxiv.Search(
+                query=query,
+                max_results=max_results,
+                sort_by=arxiv.SortCriterion.Relevance
+            )
+            
+            results = []
+            for paper in self.client.results(search):
+                results.append({
+                    "arxiv_id": paper.get_short_id(),
+                    "title": paper.title,
+                    "summary": paper.summary[:300] + "...", # Ozetin bir kismi
+                    "url": paper.entry_id,
+                    "published": paper.published.year,
+                    "authors": [author.name for author in paper.authors]
+                })
+            return results
+        except Exception as e:
+            print(f"ArXiv genel arama hatasi ({query}): {e}")
+            return []
+
 # Singleton nesnesi
 arxiv_service = ArXivService()

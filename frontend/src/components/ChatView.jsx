@@ -4,7 +4,7 @@ import MarkdownIt from 'markdown-it';
 
 const md = new MarkdownIt();
 
-const ChatView = ({ onSendMessage, messages, isLoading, papers = [] }) => {
+const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [] }) => {
     const [input, setInput] = useState('');
     const [mode, setMode] = useState('discovery');
     const [source, setSource] = useState('private');
@@ -18,6 +18,7 @@ const ChatView = ({ onSendMessage, messages, isLoading, papers = [] }) => {
 
     const handleSend = () => {
         if (!input.trim() || isLoading) return;
+        console.log("Mesaj gönderiliyor. Mod:", mode, "Kaynak:", source);
         onSendMessage(input, { mode, source });
         setInput('');
     };
@@ -28,7 +29,7 @@ const ChatView = ({ onSendMessage, messages, isLoading, papers = [] }) => {
                 <div>
                     <div className="eyebrow">Kanıtla cevapla</div>
                     <h2>Araştırma Asistanı</h2>
-                    <p>Sorular sor, destekleyici pasajları incele ve cevabı kendi korpusuna bağlı tut.</p>
+                    <p>Kütüphanendeki makaleler ve akademik literatür arasında bağ kurarak derinlemesine analiz yap.</p>
                 </div>
 
                 <div className="chat-mode-bar">
@@ -121,6 +122,14 @@ const ChatView = ({ onSendMessage, messages, isLoading, papers = [] }) => {
                                                         </span>
                                                     </div>
                                                     <p>{sourceItem.excerpt}</p>
+                                                    {sourceItem.canAdd && (
+                                                        <button 
+                                                            className="btn-add-library"
+                                                            onClick={() => onAddPaper(sourceItem.title)}
+                                                        >
+                                                            Kütüphaneye Ekle
+                                                        </button>
+                                                    )}
                                                 </div>
                                             ))}
                                         </div>
@@ -176,18 +185,10 @@ const ChatView = ({ onSendMessage, messages, isLoading, papers = [] }) => {
                         </p>
                     </div>
                     <div className="surface-card compact-pad">
-                        <div className="eyebrow">Soru fikirleri</div>
-                        <div className="prompt-list">
-                            <button className="prompt-chip" onClick={() => setInput('Yüklenen makalelerdeki ana yöntemleri karşılaştır.')}>
-                                Yöntemleri karşılaştır
-                            </button>
-                            <button className="prompt-chip" onClick={() => setInput('Mevcut kütüphanemde en merkezi görünen kavramlar hangileri?')}>
-                                Merkezi kavramlar
-                            </button>
-                            <button className="prompt-chip" onClick={() => setInput('Bu korpustaki ana iddiayı hangi kanıtlar destekliyor?')}>
-                                Kanıt izi
-                            </button>
-                        </div>
+                        <div className="eyebrow">Yönlendirmeler</div>
+                        <p className="small-text">
+                            Bir makale ekleyerek başlayabilir veya literatür taraması yapabilirsin.
+                        </p>
                     </div>
                 </aside>
             </div>

@@ -13,6 +13,7 @@ from app.services.llm_service import llm_service
 from app.services.graph_service import graph_service
 from app.services.vector_service import vector_service
 from app.services.search_service import search_service
+from app.services.arxiv_service import arxiv_service
 
 # Yuklenen dosyalarin gecici olarak tutulacagi klasor
 UPLOAD_DIR = Path("uploads")
@@ -108,6 +109,66 @@ async def analyze_pdf(file: UploadFile = File(...)):
         # Islem bittikten sonra gecici dosyayi silebiliriz
         if file_path.exists():
             os.remove(file_path)
+
+class ArXivRequest(BaseModel):
+    title: str
+
+@app.post("/add-from-arxiv")
+async def add_from_arxiv(request: ArXivRequest):
+    """
+    ArXiv'den basliga gore makale bulur ve sisteme (Graph + Vector) ekler.
+    """
+    paper_info = arxiv_service.search_paper_by_title(request.title)
+    if not paper_info:
+        raise HTTPException(status_code=404, detail="Makale ArXiv'de bulunamadi.")
+    
+    try:
+        # 1. Graph Veritabanina Ekle
+        # Basit bir metadata yapisi olusturuyoruz
+        metadata = {
+            "title": paper_info["title"],
+            "year": paper_info["published"],
+            "abstract": paper_info["summary"],
+            "url": paper_info["url"],
+            "arxiv_id": paper_info["arxiv_id"],
+            "authors": [] # ArXiv API'den yazar cekmek icin service gelistirilebilir
+        }
+        
+        graph_service.add_paper_with_metadata(metadata)
+        
+        # 2. Vector Veritabanina Ekle (Ozet kismini chunk olarak ekliyoruz)
+        paper_id = paper_info["arxiv_id"]
+        chunks = [paper_info["summary"]] # Su an sadece ozeti ekliyoruz, tam metin icin PDF indirme eklenebilir
+        
+        vector_service.add_chunks(
+            paper_id=paper_id,
+            chunks=chunks,
+            metadata={
+                "title": paper_info["title"],
+                "year": paper_info["published"],
+                "paper_id": paper_id,
+                "is_abstract": True
+            }
+        )
+        
+        return {
+            "status": "success",
+            "paper": paper_info
+        }
+    except Exception as e:
+        print(f"ArXiv ekleme hatasi: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/search-arxiv")
+async def search_arxiv(q: str):
+    """
+    Konuya gore ArXiv'de arama yapar.
+    """
+    if not q:
+        return {"results": []}
+    
+    results = arxiv_service.search_papers(q)
+    return {"results": results}
 
 class QueryRequest(BaseModel):
     question: str
