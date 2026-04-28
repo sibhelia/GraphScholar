@@ -86,7 +86,7 @@ const GraphView = ({ data, papers = [] }) => {
             <div className="graph-header-shell">
                 <div>
                     <div className="eyebrow">Özetten fazlası: yapı</div>
-                    <h2>Bilgi Grafiği</h2>
+                    <h2>Semantik Varlıklar</h2>
                     <p>Atıf yollarını izle, kavram kümelerini incele ve ilişkisel bağlamı görünür tut.</p>
                 </div>
 

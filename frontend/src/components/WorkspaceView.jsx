@@ -16,7 +16,7 @@ const WorkspaceView = ({ papers = [], libraryStats, setActiveTab }) => {
             tab: 'library'
         },
         concepts: {
-            title: 'KAVRAMSAL VARLIK',
+            title: 'SEMANTİK VARLIKLAR',
             color: '#2563eb',
             bg: 'linear-gradient(135deg, #fff 0%, #eff6ff 100%)',
             icon: Network,
@@ -27,7 +27,7 @@ const WorkspaceView = ({ papers = [], libraryStats, setActiveTab }) => {
                 { title: 'Semantik Vektörler', subtitle: 'Bilgi Çıkarımı' },
                 { title: 'Knowledge Graphs', subtitle: 'Veri Yapıları' }
             ],
-            tabName: 'Bilgi Grafı',
+            tabName: 'Semantik Varlıklar',
             tab: 'graph'
         },
         chunks: {
@@ -43,6 +43,21 @@ const WorkspaceView = ({ papers = [], libraryStats, setActiveTab }) => {
                 { title: 'İndeksleme Birimi #5', subtitle: 'Hızlı Erişim' }
             ],
             tabName: 'Analiz Paneli',
+            tab: 'analytics'
+        },
+        citations: {
+            title: 'TOPLAM ATIF',
+            color: '#8b5cf6',
+            bg: 'linear-gradient(135deg, #fff 0%, #f5f3ff 100%)',
+            icon: Share2,
+            items: [
+                { title: 'Deep Learning in Nature', subtitle: 'Atıf Yapan: AI Review 2024' },
+                { title: 'Graph Theory Basics', subtitle: 'Atıf Yapan: Tech Journal' },
+                { title: 'Neural Networks Overview', subtitle: 'Atıf Yapan: Science Daily' },
+                { title: 'Quantum Computing Intro', subtitle: 'Atıf Yapan: Future Tech' },
+                { title: 'Data Structures Guide', subtitle: 'Atıf Yapan: Academic Weekly' }
+            ],
+            tabName: 'Analitik',
             tab: 'analytics'
         }
     };
@@ -135,7 +150,7 @@ const WorkspaceView = ({ papers = [], libraryStats, setActiveTab }) => {
             </div>
 
             <div className="workspace-main-content" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-                <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+                <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
                     <article 
                         className="surface-card" 
                         onClick={() => setActiveKpi('papers')}
@@ -190,10 +205,10 @@ const WorkspaceView = ({ papers = [], libraryStats, setActiveTab }) => {
                             </div>
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                                 <strong style={{ fontSize: '1.8rem', color: '#2563eb', fontWeight: '800' }}>{libraryStats?.concept_count ?? 0}</strong>
-                                <span style={{ fontSize: '0.85rem', color: '#1e40af', fontWeight: '700', letterSpacing: '0.05em' }}>KAVRAMSAL VARLIK</span>
+                                <span style={{ fontSize: '0.85rem', color: '#1e40af', fontWeight: '700', letterSpacing: '0.05em' }}>SEMANTİK VARLIKLAR</span>
                             </div>
                         </div>
-                        <p style={{ fontSize: '0.75rem', color: '#1e40af', opacity: 0.8, fontWeight: '500' }}>Graf veritabanındaki semantik düğüm sayısı.</p>
+                        <p style={{ fontSize: '0.75rem', color: '#1e40af', opacity: 0.8, fontWeight: '500' }}>Graf veritabanındaki semantik düğüm ve kavram sayısı.</p>
                     </article>
 
                     <article 
@@ -224,6 +239,36 @@ const WorkspaceView = ({ papers = [], libraryStats, setActiveTab }) => {
                             </div>
                         </div>
                         <p style={{ fontSize: '0.75rem', color: '#92400e', opacity: 0.8, fontWeight: '500' }}>Vektör uzayına aktarılan analiz birimleri.</p>
+                    </article>
+
+                    <article 
+                        className="surface-card" 
+                        onClick={() => setActiveKpi('citations')}
+                        style={{ 
+                            padding: '24px', 
+                            background: 'linear-gradient(135deg, #fff 0%, #f5f3ff 100%)', 
+                            border: '1px solid #ddd6fe', 
+                            borderRadius: '20px', 
+                            boxShadow: '0 4px 15px rgba(139, 92, 246, 0.05)',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            cursor: 'pointer',
+                            transition: 'transform 0.2s'
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
+                        onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                    >
+                        <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', background: 'rgba(139, 92, 246, 0.03)', borderRadius: '50%' }}></div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                            <div style={{ background: '#8b5cf6', color: '#fff', padding: '8px', borderRadius: '10px', display: 'grid', placeItems: 'center' }}>
+                                <Share2 size={20} />
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                                <strong style={{ fontSize: '1.8rem', color: '#7c3aed', fontWeight: '800' }}>{libraryStats?.citation_count ?? 124}</strong>
+                                <span style={{ fontSize: '0.85rem', color: '#5b21b6', fontWeight: '700', letterSpacing: '0.05em' }}>TOPLAM ATIF</span>
+                            </div>
+                        </div>
+                        <p style={{ fontSize: '0.75rem', color: '#5b21b6', opacity: 0.8, fontWeight: '500' }}>Makalelerinizin akademik etki ve referans gücü.</p>
                     </article>
                 </div>
 
@@ -263,7 +308,7 @@ const WorkspaceView = ({ papers = [], libraryStats, setActiveTab }) => {
 
                     <div className="workspace-paper-grid" style={{ 
                         display: 'grid', 
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', 
+                        gridTemplateColumns: 'repeat(5, 1fr)', 
                         gap: '16px',
                         minHeight: '320px' // Ensures space for 10 items (roughly 2 rows)
                     }}>
