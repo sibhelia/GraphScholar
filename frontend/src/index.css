@@ -924,18 +924,22 @@ p {
   background: rgba(252, 252, 252, 0.9);
   overflow: hidden;
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr 1fr;
   gap: 0;
   margin-bottom: 16px
 }
 
 .upload-dropzone {
   display: flex;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
   gap: 16px;
-  padding: 24px;
+  padding: 32px;
   cursor: pointer;
-  transition: background 0.2s
+  background: rgba(16, 185, 129, 0.05); /* Transparent green */
+  transition: background 0.2s;
+  text-align: center;
 }
 
 .upload-dropzone:hover,
@@ -991,7 +995,7 @@ p {
 
 .library-visual-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px
 }
 
@@ -1018,7 +1022,7 @@ p {
 
 .library-paper-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(5, 1fr);
   gap: 14px
 }
 

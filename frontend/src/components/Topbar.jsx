@@ -22,7 +22,7 @@ const TAB_TITLES = {
 const NAV_ITEMS = [
     { id: 'chat', icon: MessageSquare, label: 'Araştırma' },
     { id: 'workspace', icon: FolderKanban, label: 'Çalışma Alanı' },
-    { id: 'graph', icon: Share2, label: 'Grafik' },
+    { id: 'graph', icon: Share2, label: 'Bilgi Grafiği' },
     { id: 'library', icon: BookOpen, label: 'Kütüphane' },
     { id: 'analytics', icon: TrendingUp, label: 'Analitik' },
 ];

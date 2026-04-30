@@ -17,13 +17,13 @@ const AnalyticsView = ({ papers = [], libraryStats, graphData }) => {
     }));
 
     return (
-        <section className="page-scroll page-analytics" style={{ padding: '24px' }}>
-            <div className="page-header" style={{ marginBottom: '32px' }}>
+        <section className="page-scroll page-analytics" style={{ padding: '16px 24px 24px' }}>
+            <div className="page-header" style={{ marginBottom: '24px' }}>
                 <div>
-                    <div className="eyebrow" style={{ color: '#8b5cf6' }}>İSTATİSTİKSEL GÖRÜNÜM</div>
-                    <h2 style={{ fontSize: '1.75rem', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.03em' }}>Akademik Analitik</h2>
-                    <p style={{ color: '#64748b', fontSize: '0.92rem', marginTop: '8px', lineHeight: '1.6' }}>
-                        Kütüphanenizdeki verilerin derinlemesine analizi. Hangi alanlarda yoğunlaştığınızı, atıf ağınızı ve literatürdeki etkinizi buradan takip edebilirsiniz.
+                    <div className="eyebrow">Analitik</div>
+                    <h2 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.03em' }}>Akademik Analiz</h2>
+                    <p style={{ color: '#64748b', fontSize: '0.88rem', marginTop: '6px', lineHeight: '1.5' }}>
+                        Atıf ağı, yazar etki skorları ve tematik kapsamın canlı görünümü.
                     </p>
                 </div>
             </div>
@@ -58,8 +58,8 @@ const AnalyticsView = ({ papers = [], libraryStats, graphData }) => {
                 <section className="surface-card" style={{ padding: '24px', background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
                     <div className="section-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                         <div>
-                            <div className="eyebrow" style={{ color: '#8b5cf6' }}>REFERANS GÜCÜ</div>
-                            <h3 style={{ fontSize: '1.2rem', color: '#0f172a', fontWeight: '800' }}>Atıf ve Etki Analizi</h3>
+                            <div className="eyebrow">Atıf Gücü</div>
+                            <h3 style={{ fontSize: '1.15rem', color: '#0f172a', fontWeight: '800' }}>En Çok Atıf Alan Makaleler</h3>
                         </div>
                         <BarChart3 size={20} style={{ color: '#94a3b8' }} />
                     </div>
@@ -115,8 +115,8 @@ const AnalyticsView = ({ papers = [], libraryStats, graphData }) => {
                 <section className="surface-card" style={{ padding: '24px', background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
                     <div className="section-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                         <div>
-                            <div className="eyebrow" style={{ color: '#10b981' }}>KEŞİF SİNYALLERİ</div>
-                            <h3 style={{ fontSize: '1.2rem', color: '#0f172a', fontWeight: '800' }}>Kapsama ve Kavram Analizi</h3>
+                            <div className="eyebrow">Kapsam</div>
+                            <h3 style={{ fontSize: '1.15rem', color: '#0f172a', fontWeight: '800' }}>Kavram ve Kapsama Analizi</h3>
                         </div>
                         <Radar size={20} style={{ color: '#94a3b8' }} />
                     </div>

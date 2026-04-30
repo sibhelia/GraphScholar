@@ -136,62 +136,58 @@ const GraphView = ({ data, papers = [], onSeed, isSeeding }) => {
     );
 
     return (
-        <section className="page-scroll page-graph" style={{ padding: '24px' }}>
-            <div className="graph-header-shell" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '32px' }}>
+        <section className="page-scroll page-graph" style={{ padding: '8px 24px 0' }}>
+            <div className="graph-header-shell" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '20px' }}>
                 <div>
-                    <div className="eyebrow" style={{ color: '#6366f1' }}>BİLGİ TOPOLOJİSİ</div>
-                    <h2 style={{ fontSize: '1.75rem', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.03em' }}>Semantik Varlıklar</h2>
-                    <p style={{ color: '#64748b', fontSize: '0.92rem', marginTop: '8px' }}>Atıf yollarını izle, kavram kümelerini incele ve ilişkisel bağlamı görselleştir.</p>
+                    <div className="eyebrow">BİLGİ GRAFİĞİ</div>
+                    <h2 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.03em' }}>Akademik İlişki Haritası</h2>
+                    <p style={{ color: '#64748b', fontSize: '0.88rem', marginTop: '6px', lineHeight: '1.5' }}>Makaleler, yazarlar ve kavramlar arasındaki bağlantıları interaktif olarak keşfet.</p>
                 </div>
 
-                <div className="graph-toolbar" style={{ display: 'flex', gap: '12px' }}>
-                    <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '4px 12px', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
-                        <Filter size={14} style={{ color: '#94a3b8' }} />
+                <div className="graph-toolbar" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '4px 12px', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+                        <Filter size={13} style={{ color: '#94a3b8' }} />
                         <select 
                             value={filterYear} 
                             onChange={(e) => setFilterYear(e.target.value)}
-                            style={{ border: 'none', fontSize: '0.85rem', fontWeight: '600', color: '#475569', outline: 'none', background: 'transparent', cursor: 'pointer' }}
+                            style={{ border: 'none', fontSize: '0.83rem', fontWeight: '600', color: '#475569', outline: 'none', background: 'transparent', cursor: 'pointer' }}
                         >
                             <option value="all">Tüm Dönemler</option>
                             <option value="2024">2024+</option>
                             <option value="2020">2020+</option>
+                            <option value="2018">2018+</option>
                         </select>
                     </div>
+                    <button
+                        onClick={() => setIsPathfinderActive(!isPathfinderActive)}
+                        style={{ 
+                            display: 'flex', alignItems: 'center', gap: '8px',
+                            padding: '9px 16px', borderRadius: '10px', fontSize: '0.83rem', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s',
+                            background: isPathfinderActive ? '#0f172a' : '#f8fafc',
+                            color: isPathfinderActive ? '#fff' : '#475569',
+                            border: `1px solid ${isPathfinderActive ? '#0f172a' : '#e2e8f0'}`,
+                        }}
+                    >
+                        <GitBranch size={15} />
+                        Yol Bulucu {pathfinderNodes.length > 0 ? `(${pathfinderNodes.length}/2)` : ''}
+                    </button>
                     <button
                         onClick={onSeed}
                         disabled={isSeeding}
                         style={{ 
-                            display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '700', cursor: isSeeding ? 'not-allowed' : 'pointer', transition: 'all 0.2s',
-                            background: isSeeding ? '#f1f5f9' : '#eff6ff',
-                            color: isSeeding ? '#94a3b8' : '#1d4ed8',
-                            border: `1px solid ${isSeeding ? '#e2e8f0' : '#dbeafe'}`,
-                            boxShadow: isSeeding ? 'none' : '0 2px 8px rgba(29, 78, 216, 0.05)'
+                            display: 'flex', alignItems: 'center', gap: '8px',
+                            padding: '9px 16px', borderRadius: '10px', fontSize: '0.83rem', fontWeight: '700',
+                            cursor: isSeeding ? 'not-allowed' : 'pointer', transition: 'all 0.2s',
+                            background: isSeeding ? '#f1f5f9' : '#f0fdf4',
+                            color: isSeeding ? '#94a3b8' : '#15803d',
+                            border: `1px solid ${isSeeding ? '#e2e8f0' : '#bbf7d0'}`,
                         }}
                     >
                         {isSeeding ? (
-                            <>
-                                <div className="animate-spin" style={{ width: '16px', height: '16px', border: '2px solid #94a3b8', borderTopColor: 'transparent', borderRadius: '50%' }}></div>
-                                İşleniyor...
-                            </>
+                            <><div style={{ width: '14px', height: '14px', border: '2px solid #94a3b8', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />İşleniyor...</>
                         ) : (
-                            <>
-                                <Sparkles size={16} />
-                                Akademik Küme Ekle
-                            </>
+                            <><Sparkles size={15} />Demo Veri Ekle</>
                         )}
-                    </button>
-                    <button
-                        onClick={() => setIsPathfinderActive(!isPathfinderActive)}
-                        style={{ 
-                            display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s',
-                            background: isPathfinderActive ? '#6366f1' : '#fff',
-                            color: isPathfinderActive ? '#fff' : '#475569',
-                            border: `1px solid ${isPathfinderActive ? '#6366f1' : '#e2e8f0'}`,
-                            boxShadow: isPathfinderActive ? '0 8px 16px rgba(99, 102, 241, 0.2)' : '0 2px 8px rgba(0,0,0,0.02)'
-                        }}
-                    >
-                        <GitBranch size={16} />
-                        Yol Bulucu {pathfinderNodes.length > 0 ? `(${pathfinderNodes.length}/2)` : ''}
                     </button>
                 </div>
             </div>

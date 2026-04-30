@@ -10,9 +10,15 @@ import {
     ArrowLeft,
     Upload,
     UserCheck,
+    ChevronLeft,
+    ChevronRight,
 } from 'lucide-react';
+import { useState, useMemo } from 'react';
 
 const LibraryView = ({ onUpload, onAddPaper, isUploading, uploadStatus, papers = [], libraryStats, setActiveTab, previousTab }) => {
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 15;
+
     const stats = [
         { label: 'Makale', value: libraryStats?.paper_count ?? 0, icon: FileText },
         { label: 'Yazar', value: libraryStats?.author_count ?? 0, icon: Share2 },
@@ -21,6 +27,10 @@ const LibraryView = ({ onUpload, onAddPaper, isUploading, uploadStatus, papers =
     ];
 
     const hasSuccessStatus = uploadStatus?.toLowerCase().includes('başarı');
+
+    const reversedPapers = useMemo(() => [...papers].reverse(), [papers]);
+    const totalPages = Math.ceil(reversedPapers.length / ITEMS_PER_PAGE) || 1;
+    const currentPapers = reversedPapers.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
     return (
         <section className="page-scroll page-library">
@@ -77,37 +87,7 @@ const LibraryView = ({ onUpload, onAddPaper, isUploading, uploadStatus, papers =
                     </div>
                 </label>
 
-                {/* Quick Add by Title */}
-                <div style={{ padding: '24px', borderLeft: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '12px', justifyContent: 'center', background: '#f8fafc' }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Hızlı Makale Ekle</span>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                        <input 
-                            type="text" 
-                            id="quick-add-input"
-                            placeholder="Makale başlığı girin..." 
-                            style={{ padding: '10px 14px', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '0.85rem', width: '220px', outline: 'none', background: '#fff' }}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' && e.target.value) {
-                                    onAddPaper(e.target.value);
-                                    e.target.value = '';
-                                }
-                            }}
-                        />
-                        <button 
-                            onClick={() => {
-                                const input = document.getElementById('quick-add-input');
-                                if (input.value) {
-                                    onAddPaper(input.value);
-                                    input.value = '';
-                                }
-                            }}
-                            style={{ background: '#0f172a', color: '#fff', padding: '10px', borderRadius: '10px', display: 'grid', placeItems: 'center', cursor: 'pointer' }}
-                        >
-                            <Sparkles size={16} />
-                        </button>
-                    </div>
-                    <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>ArXiv veritabanından anında çeker.</span>
-                </div>
+                <div style={{ display: 'none' }}></div>
 
                 <div className="library-visual-panel">
                     <div className="library-hero-badge">
@@ -135,28 +115,38 @@ const LibraryView = ({ onUpload, onAddPaper, isUploading, uploadStatus, papers =
                         <div className="eyebrow">Koleksiyon</div>
                         <h3>{papers.length} kayıt</h3>
                     </div>
-                    <button
-                        title="Mevcut makalelerin yazar bilgisini ArXiv'den güncelle"
-                        onClick={async () => {
-                            try {
-                                const res = await fetch('http://localhost:8080/enrich-authors', { method: 'POST' });
-                                const data = await res.json();
-                                alert(data.message || 'Yazar zenginleştirme başladı.');
-                            } catch (e) {
-                                alert('Bağlantı hatası.');
-                            }
-                        }}
-                        style={{
-                            display: 'grid', placeItems: 'center',
-                            width: '36px', height: '36px',
-                            borderRadius: '10px', cursor: 'pointer',
-                            background: '#f5f3ff', color: '#7c3aed',
-                            border: '1px solid #ede9fe',
-                            flexShrink: 0
-                        }}
-                    >
-                        <UserCheck size={16} />
-                    </button>
+                    
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <input 
+                                type="text" 
+                                id="quick-add-input"
+                                placeholder="Makale başlığı ile ArXiv'den ekle..." 
+                                style={{ padding: '8px 12px', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '0.8rem', width: '240px', outline: 'none', background: '#fff' }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && e.target.value) {
+                                        onAddPaper(e.target.value);
+                                        e.target.value = '';
+                                        setCurrentPage(1); // Reset to first page
+                                    }
+                                }}
+                            />
+                            <button 
+                                onClick={() => {
+                                    const input = document.getElementById('quick-add-input');
+                                    if (input.value) {
+                                        onAddPaper(input.value);
+                                        input.value = '';
+                                        setCurrentPage(1);
+                                    }
+                                }}
+                                style={{ background: '#10b981', color: '#fff', padding: '8px', borderRadius: '10px', display: 'grid', placeItems: 'center', cursor: 'pointer', border: 'none' }}
+                                title="ArXiv'den İndir"
+                            >
+                                <Sparkles size={16} />
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="library-paper-grid">
@@ -167,14 +157,18 @@ const LibraryView = ({ onUpload, onAddPaper, isUploading, uploadStatus, papers =
                         </div>
                     )}
 
-                    {papers.map((paper) => (
+                    {currentPapers.map((paper) => (
                         <article key={paper.id} className="library-paper-card library-paper-card-visual">
                             <div className="library-paper-topline">
-                                <div className="library-paper-year">
-                                    <Calendar size={14} />
-                                    <span>{paper.year || 'Yıl yok'}</span>
-                                </div>
-                                <span className="info-chip strong">{paper.citation_count ?? 0} atıf</span>
+                                {paper.year && (
+                                    <div className="library-paper-year">
+                                        <Calendar size={14} />
+                                        <span>{paper.year}</span>
+                                    </div>
+                                )}
+                                {(paper.citation_count > 0) && (
+                                    <span className="info-chip strong">{paper.citation_count} atıf</span>
+                                )}
                             </div>
 
                             <div className="library-paper-mainicon">
@@ -183,11 +177,12 @@ const LibraryView = ({ onUpload, onAddPaper, isUploading, uploadStatus, papers =
 
                             <div className="library-paper-head">
                                 <div className="library-paper-title-block">
-                                    <h4>{paper.title}</h4>
-                                    <p>
-                                        {(paper.authors || []).slice(0, 3).join(', ') ||
-                                            'Yazar bilgisi yok'}
-                                    </p>
+                                    <h4 title={paper.title} style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{paper.title}</h4>
+                                    {paper.authors && paper.authors.length > 0 && (
+                                        <p>
+                                            {paper.authors.slice(0, 3).join(', ')}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 
@@ -203,6 +198,29 @@ const LibraryView = ({ onUpload, onAddPaper, isUploading, uploadStatus, papers =
                         </article>
                     ))}
                 </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', marginTop: '24px' }}>
+                        <button 
+                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                            disabled={currentPage === 1}
+                            style={{ padding: '8px', borderRadius: '8px', border: '1px solid #e2e8f0', background: currentPage === 1 ? '#f8fafc' : '#fff', color: currentPage === 1 ? '#cbd5e1' : '#475569', cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
+                        >
+                            <ChevronLeft size={18} />
+                        </button>
+                        <span style={{ fontSize: '0.85rem', fontWeight: '600', color: '#64748b' }}>
+                            Sayfa {currentPage} / {totalPages}
+                        </span>
+                        <button 
+                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                            disabled={currentPage === totalPages}
+                            style={{ padding: '8px', borderRadius: '8px', border: '1px solid #e2e8f0', background: currentPage === totalPages ? '#f8fafc' : '#fff', color: currentPage === totalPages ? '#cbd5e1' : '#475569', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
+                        >
+                            <ChevronRight size={18} />
+                        </button>
+                    </div>
+                )}
             </section>
         </section>
     );
