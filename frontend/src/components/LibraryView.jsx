@@ -9,6 +9,7 @@ import {
     Sparkles,
     ArrowLeft,
     Upload,
+    UserCheck,
 } from 'lucide-react';
 
 const LibraryView = ({ onUpload, onAddPaper, isUploading, uploadStatus, papers = [], libraryStats, setActiveTab, previousTab }) => {
@@ -135,6 +136,7 @@ const LibraryView = ({ onUpload, onAddPaper, isUploading, uploadStatus, papers =
                         <h3>{papers.length} kayıt</h3>
                     </div>
                     <button
+                        title="Mevcut makalelerin yazar bilgisini ArXiv'den güncelle"
                         onClick={async () => {
                             try {
                                 const res = await fetch('http://localhost:8080/enrich-authors', { method: 'POST' });
@@ -145,14 +147,15 @@ const LibraryView = ({ onUpload, onAddPaper, isUploading, uploadStatus, papers =
                             }
                         }}
                         style={{
-                            display: 'flex', alignItems: 'center', gap: '8px',
-                            padding: '8px 16px', borderRadius: '10px', fontSize: '0.8rem',
-                            fontWeight: '700', cursor: 'pointer',
+                            display: 'grid', placeItems: 'center',
+                            width: '36px', height: '36px',
+                            borderRadius: '10px', cursor: 'pointer',
                             background: '#f5f3ff', color: '#7c3aed',
-                            border: '1px solid #ede9fe'
+                            border: '1px solid #ede9fe',
+                            flexShrink: 0
                         }}
                     >
-                        <Share2 size={14} /> Yazarları Güncelle
+                        <UserCheck size={16} />
                     </button>
                 </div>
 

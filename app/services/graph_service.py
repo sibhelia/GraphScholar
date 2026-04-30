@@ -245,7 +245,13 @@ class GraphService:
 
                 if target_id not in node_ids:
                     node_ids.add(target_id)
-                    group = "concept" if record["target_label"] == "Concept" else "paper"
+                    label = record["target_label"]
+                    group = "paper"
+                    if label == "Concept":
+                        group = "concept"
+                    elif label == "Author":
+                        group = "Author"
+                        
                     nodes.append({
                         "id": target_id,
                         "label": record["target_title"] or target_id,

@@ -25,25 +25,33 @@ const GraphView = ({ data, papers = [], onSeed, isSeeding }) => {
 
         const visData = {
             nodes: new DataSet(
-                filteredNodes.map((node) => ({
-                    ...node,
-                    color: getNodeColor(node.group),
-                    shape: node.group === 'concept' ? 'dot' : 'box',
-                    borderWidth: 2,
-                    font: { color: '#0f172a', face: 'Inter, system-ui', size: 14, weight: '600' },
-                    margin: node.group === 'paper' ? 12 : 8,
-                    shadow: { enabled: true, color: 'rgba(0,0,0,0.05)', size: 10, x: 0, y: 4 }
-                })),
+                filteredNodes.map((node) => {
+                    const isPathSelected = pathfinderNodes.includes(node.id);
+                    return {
+                        ...node,
+                        color: getNodeColor(node.group),
+                        shape: (node.group === 'concept' || node.group === 'Author') ? 'dot' : 'box',
+                        borderWidth: isPathSelected ? 4 : 2,
+                        borderColor: isPathSelected ? '#6366f1' : undefined,
+                        font: { color: '#0f172a', face: 'Inter, system-ui', size: 14, weight: '600' },
+                        margin: node.group === 'paper' ? 12 : 8,
+                        shadow: { enabled: true, color: isPathSelected ? 'rgba(99, 102, 241, 0.4)' : 'rgba(0,0,0,0.05)', size: isPathSelected ? 20 : 10, x: 0, y: 4 }
+                    };
+                }),
             ),
             edges: new DataSet(
-                filteredEdges.map((edge) => ({
-                    ...edge,
-                    color: { color: '#e2e8f0', hover: '#8b5cf6', highlight: '#8b5cf6' },
-                    width: 1.5,
-                    selectionWidth: 3,
-                    hoverWidth: 2,
-                    smooth: { type: 'continuous', roundness: 0.5 },
-                })),
+                filteredEdges.map((edge) => {
+                    const edgeColor = getEdgeColor(edge.label);
+                    return {
+                        ...edge,
+                        color: edgeColor,
+                        width: edge.label === 'CITES' ? 2 : 1.5,
+                        selectionWidth: 3,
+                        hoverWidth: 2.5,
+                        smooth: { type: 'continuous', roundness: 0.5 },
+                        font: { size: 0 },  // kenar etiketlerini gizle (legend var)
+                    };
+                }),
             ),
         };
 
@@ -218,15 +226,57 @@ const GraphView = ({ data, papers = [], onSeed, isSeeding }) => {
                         <button style={{ background: '#fff', border: '1px solid #e2e8f0', padding: '10px', borderRadius: '10px', color: '#64748b', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}><Maximize2 size={18} /></button>
                     </div>
 
-                    <div className="graph-legend" style={{ position: 'absolute', bottom: '20px', left: '20px', background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(10px)', padding: '10px 16px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.05)', display: 'flex', gap: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', fontWeight: '700', color: '#475569' }}>
-                            <div style={{ width: '10px', height: '10px', background: '#eff6ff', border: '2px solid #3b82f6', borderRadius: '2px' }}></div> Makale
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', fontWeight: '700', color: '#475569' }}>
-                            <div style={{ width: '10px', height: '10px', background: '#f5f3ff', border: '2px solid #8b5cf6', borderRadius: '50%' }}></div> Yazar
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', fontWeight: '700', color: '#475569' }}>
-                            <div style={{ width: '10px', height: '10px', background: '#fffbeb', border: '2px solid #f59e0b', borderRadius: '50%' }}></div> Kavram
+                    <div className="graph-legend" style={{
+                        position: 'absolute', bottom: '20px', left: '20px',
+                        background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(16px)',
+                        padding: '14px 18px', borderRadius: '16px',
+                        border: '1px solid rgba(0,0,0,0.06)',
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+                        display: 'flex', flexDirection: 'column', gap: '10px', minWidth: '160px'
+                    }}>
+                        <span style={{ fontSize: '0.65rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '2px' }}>
+                            Düğüm Türleri
+                        </span>
+
+                        {[
+                            { label: 'Makale', color: '#3b82f6', bg: '#eff6ff', shape: '4px', count: filteredNodes.filter(n => n.group === 'paper').length, desc: 'Bilimsel yayın' },
+                            { label: 'Yazar', color: '#8b5cf6', bg: '#f5f3ff', shape: '50%', count: filteredNodes.filter(n => n.group === 'Author').length, desc: 'Araştırmacı' },
+                            { label: 'Kavram', color: '#f59e0b', bg: '#fffbeb', shape: '50%', count: filteredNodes.filter(n => n.group === 'concept').length, desc: 'Semantik etiket' },
+                        ].map(item => (
+                            <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{
+                                    width: '14px', height: '14px', flexShrink: 0,
+                                    background: item.bg, border: `2.5px solid ${item.color}`,
+                                    borderRadius: item.shape,
+                                    boxShadow: `0 0 0 3px ${item.color}20`
+                                }} />
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#1e293b' }}>{item.label}</span>
+                                        <span style={{
+                                            fontSize: '0.68rem', fontWeight: '800', color: item.color,
+                                            background: item.bg, padding: '1px 7px', borderRadius: '20px',
+                                            border: `1px solid ${item.color}40`
+                                        }}>{item.count}</span>
+                                    </div>
+                                    <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: '500' }}>{item.desc}</span>
+                                </div>
+                            </div>
+                        ))}
+
+                        <div style={{ borderTop: '1px solid #f1f5f9', marginTop: '4px', paddingTop: '8px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                            {[
+                                { label: 'CITES', color: '#64748b', desc: 'Atıf ilişkisi' },
+                                { label: 'WROTE', color: '#8b5cf6', desc: 'Yazarlık bağı' },
+                                { label: 'MENTIONS', color: '#f59e0b', desc: 'Kavram bağı' },
+                            ].map(edge => (
+                                <div key={edge.label} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <div style={{ width: '20px', height: '2px', background: edge.color, borderRadius: '2px', flexShrink: 0 }} />
+                                    <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '600' }}>
+                                        <span style={{ color: edge.color, fontWeight: '800' }}>{edge.label}</span> — {edge.desc}
+                                    </span>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -335,6 +385,17 @@ function getNodeColor(group) {
         highlight: { background: '#dbeafe', border: '#1d4ed8' },
         hover: { background: '#dbeafe', border: '#1d4ed8' }
     };
+}
+
+function getEdgeColor(label) {
+    if (label === 'WROTE') {
+        return { color: '#c4b5fd', hover: '#8b5cf6', highlight: '#8b5cf6', opacity: 0.8 };
+    }
+    if (label === 'MENTIONS') {
+        return { color: '#fcd34d', hover: '#f59e0b', highlight: '#f59e0b', opacity: 0.8 };
+    }
+    // CITES
+    return { color: '#cbd5e1', hover: '#64748b', highlight: '#475569', opacity: 0.9 };
 }
 
 export default GraphView;
