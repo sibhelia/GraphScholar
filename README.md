@@ -66,21 +66,31 @@ GraphScholar solves a core problem in academic research: information is scattere
 
 The primary interface for interacting with the corpus. The left panel contains the conversational chat area with separate message history and input containers. The right panel displays live library statistics (document count, chunk count, concept count, citation edges) and a system capabilities reference.
 
+![Research Assistant](docs/screenshots/chat_view.png)
+
 ### Workspace
 
 The command center for the corpus. Displays four color-coded KPI cards (Total Documents, Semantic Entities, Knowledge Chunks, Total Citations) and a scrollable grid of the most recently added papers with author and year metadata.
+
+![Workspace](docs/screenshots/workspace_view.png)
 
 ### Knowledge Graph
 
 A full-canvas, interactive graph rendered using a force-directed layout. Papers are displayed as labeled rectangles; authors and concepts appear as color-coded circular nodes. The legend, filter controls, and a minimap allow precise navigation across large graphs.
 
+![Knowledge Graph](docs/screenshots/graph_view.png)
+
 ### Library
 
 Split-panel hero section with a PDF upload dropzone (green theme) alongside an ArXiv ingestion form (blue theme). Below, a four-column KPI grid and a paginated paper collection grid sorted newest-first.
 
+![Library](docs/screenshots/library_view.png)
+
 ### Analytics
 
 Four-column metric grid (Total Documents, H-Index Score, Citation Network, Collective Authors) followed by two analysis panels: a ranked list of the most-cited papers and a qualitative coverage analysis with graph density and RAG accuracy signals.
+
+![Analytics](docs/screenshots/analytics_view.png)
 
 ---
 
@@ -132,11 +142,13 @@ The backend performs a **hybrid search** on every query: ChromaDB handles vector
 
 ## Getting Started
 
+GraphScholar runs via **Docker Compose**. The entire backend stack (FastAPI, Neo4j, ChromaDB) is containerized and orchestrated with a single command. The frontend development server runs separately with Node.js.
+
 ### Prerequisites
 
-- Docker and Docker Compose installed
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (includes Docker Compose)
 - A Google Gemini API key
-- Node.js 18+ (for local frontend development)
+- Node.js 18+ (for the frontend)
 
 ### 1. Clone the repository
 
@@ -147,21 +159,39 @@ cd GraphScholar
 
 ### 2. Configure environment variables
 
+Create a `.env` file in the project root:
+
 ```bash
 cp .env.example .env
-# Edit .env and fill in the required values (see Environment Variables section)
 ```
 
-### 3. Start the backend services
+Then open `.env` and fill in your credentials (see the [Environment Variables](#environment-variables) section for all required fields).
+
+### 3. Start all backend services with Docker Compose
 
 ```bash
 docker-compose up -d
 ```
 
-This starts three containers:
-- `graphscholar-neo4j` on ports `7474` (browser) and `7687` (bolt)
-- `graphscholar-chroma` on port `8000`
-- `graphscholar-api` on port `8080`
+Docker Compose will build and start three containers:
+
+| Container | Service | Port |
+|---|---|---|
+| `graphscholar-neo4j` | Neo4j Graph Database | `7474` (browser UI), `7687` (bolt) |
+| `graphscholar-chroma` | ChromaDB Vector Store | `8000` |
+| `graphscholar-api` | FastAPI Backend | `8080` |
+
+Wait a few seconds for Neo4j to initialize. You can verify all services are running with:
+
+```bash
+docker-compose ps
+```
+
+To tail the API logs:
+
+```bash
+docker-compose logs -f app
+```
 
 ### 4. Start the frontend
 
@@ -172,6 +202,18 @@ npm run dev
 ```
 
 The application will be available at `http://localhost:5173`.
+
+### Stopping the services
+
+```bash
+docker-compose down
+```
+
+To also remove the persisted database volumes:
+
+```bash
+docker-compose down -v
+```
 
 ---
 
