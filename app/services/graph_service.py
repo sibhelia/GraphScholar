@@ -1,5 +1,6 @@
 from app.database import db
 from app.services.arxiv_service import arxiv_service
+import threading
 
 class GraphService:
     """Neo4j uzerindeki grafik islemlerini yoneten servis."""
@@ -44,33 +45,100 @@ class GraphService:
                     MERGE (p)-[:MENTIONS]->(c)
                 """, name=concept_name, paper_id=paper_id)
 
-            # 4. Atif yapilan makaleleri olustur ve bagla
-            total_refs = len(references)
-            for idx, ref_title in enumerate(references):
-                print(f"Referans işleniyor ({idx+1}/{total_refs}): {ref_title[:50]}...")
-                # ArXiv'den gercek bilgileri cekmeye calis
-                arxiv_data = arxiv_service.search_paper_by_title(ref_title)
-                
-                if arxiv_data:
-                    ref_id = arxiv_data["arxiv_id"]
-                    ref_final_title = arxiv_data["title"]
-                    ref_summary = arxiv_data["summary"]
-                    ref_url = arxiv_data["url"]
-                else:
-                    ref_id = ref_title.lower().replace(" ", "_")[:50]
-                    ref_final_title = ref_title
-                    ref_summary = ""
-                    ref_url = ""
-
+            # 4. Atif yapilan makaleleri olustur ve bagla (ArXiv araması OLMADAN — hızlı)
+            # Referansları sadece başlıklarıyla kaydediyoruz; ArXiv enrichment arka planda yapılabilir
+            max_refs = min(len(references), 20)  # En fazla 20 referans al
+            for ref_title in references[:max_refs]:
+                if not ref_title or len(ref_title) < 5:
+                    continue
+                ref_id = ref_title.lower().replace(" ", "_")[:50]
                 session.run("""
                     MERGE (rp:Paper {arxiv_id: $ref_id})
-                    ON CREATE SET rp.title = $ref_title, rp.abstract = $summary, rp.url = $url
+                    ON CREATE SET rp.title = $ref_title
                     WITH rp
                     MATCH (p:Paper {arxiv_id: $paper_id})
                     MERGE (p)-[:CITES]->(rp)
-                """, ref_id=ref_id, ref_title=ref_final_title, summary=ref_summary, url=ref_url, paper_id=paper_id)
+                """, ref_id=ref_id, ref_title=ref_title, paper_id=paper_id)
 
-        print(f"Grafik veritabanina kaydedildi: {title}")
+        print(f"Grafik veritabanina kaydedildi: {title} ({len(authors)} yazar, {len(concepts)} kavram, {min(len(references),20)} atif)")
+
+    def enrich_references_background(self, paper_id: str, references: list):
+        """
+        Arka planda calisir: referans stub dugumlerini ArXiv'den gercek verilerle zenginlestirir.
+        Kullanici bu metodu beklemez — yanit zaten verilmistir.
+        """
+        print(f"[ARKA PLAN] {len(references)} referans zenginlestirme basliyor...")
+        enriched = 0
+        for ref_title in references:
+            if not ref_title or len(ref_title) < 10:
+                continue
+            try:
+                arxiv_data = arxiv_service.search_paper_by_title(ref_title)
+                if not arxiv_data:
+                    continue
+                    
+                ref_id_slug = ref_title.lower().replace(" ", "_")[:50]
+                
+                with db.neo4j_driver.session() as session:
+                    # Stub dugumu gercek arxiv verileriyle guncelle ve CITES bagini koru
+                    session.run("""
+                        MATCH (stub:Paper {arxiv_id: $slug})
+                        SET stub.arxiv_id = $real_id,
+                            stub.title = $real_title,
+                            stub.abstract = $abstract,
+                            stub.url = $url,
+                            stub.year = $year
+                    """, 
+                    slug=ref_id_slug,
+                    real_id=arxiv_data["arxiv_id"],
+                    real_title=arxiv_data["title"],
+                    abstract=arxiv_data.get("summary", ""),
+                    url=arxiv_data.get("url", ""),
+                    year=arxiv_data.get("published"))
+                    
+                enriched += 1
+                print(f"[ARKA PLAN] Zenginlestirildi: {arxiv_data['title'][:50]}")
+            except Exception as e:
+                print(f"[ARKA PLAN] Zenginlestirme hatasi ({ref_title[:40]}): {e}")
+                continue
+                
+        print(f"[ARKA PLAN] Tamamlandi: {enriched}/{len(references)} referans zenginlestirildi.")
+
+    def enrich_authors_background(self, papers: list):
+        """
+        Yazarsiz makale listesini alir, ArXiv'de basliga gore arar,
+        bulunan yazarlari Neo4j'ye ekler ve WROTE baglantisi kurar.
+        """
+        print(f"[YAZAR ZENGİNLEŞTİRME] {len(papers)} makale icin basliyor...")
+        updated = 0
+        for paper in papers:
+            title = paper.get("title", "")
+            paper_id = paper.get("id", "")
+            if not title or len(title) < 5:
+                continue
+            try:
+                arxiv_data = arxiv_service.search_paper_by_title(title)
+                if not arxiv_data or not arxiv_data.get("authors"):
+                    print(f"[YAZAR] Bulunamadi: {title[:50]}")
+                    continue
+
+                authors = arxiv_data["authors"]
+                with db.neo4j_driver.session() as session:
+                    for author_name in authors:
+                        session.run("""
+                            MERGE (a:Author {name: $name})
+                            WITH a
+                            MATCH (p:Paper {arxiv_id: $paper_id})
+                            MERGE (a)-[:WROTE]->(p)
+                        """, name=author_name, paper_id=paper_id)
+
+                updated += 1
+                print(f"[YAZAR] {len(authors)} yazar eklendi: {title[:50]}")
+            except Exception as e:
+                print(f"[YAZAR] Hata ({title[:40]}): {e}")
+                continue
+
+        print(f"[YAZAR ZENGİNLEŞTİRME] Tamamlandi: {updated}/{len(papers)} makale guncellendi.")
 
     def get_paper_neighbors(self, title: str) -> dict:
         """
@@ -156,7 +224,7 @@ class GraphService:
                 return {"nodes": [], "edges": []}
 
             relation_records = session.run("""
-                MATCH (p:Paper)-[r:CITES|MENTIONS]->(n)
+                MATCH (p:Paper)-[r:CITES|MENTIONS|WROTE]-(n)
                 WHERE p.arxiv_id IN $paper_ids
                 RETURN
                     p.arxiv_id AS source_id,
@@ -167,7 +235,7 @@ class GraphService:
                     coalesce(n.title, n.name, n.arxiv_id) AS target_title,
                     n.year AS target_year
                 LIMIT $edge_limit
-            """, paper_ids=paper_ids, edge_limit=limit * 4)
+            """, paper_ids=paper_ids, edge_limit=limit * 6)
 
             edges = []
             for record in relation_records:
@@ -195,10 +263,52 @@ class GraphService:
 
             return {"nodes": nodes, "edges": edges}
 
-    def get_library_stats(self) -> dict:
-        """Kullanicinin kutuphanesi icin ozet istatistikler dondurur."""
+    def get_shortest_path(self, start_id: str, end_id: str) -> dict:
+        """Iki dugum arasindaki en kisa yolu (shortestPath) bulur."""
         with db.neo4j_driver.session() as session:
-            record = session.run("""
+            # shortestPath fonksiyonunu kullanarak yolu bul
+            query = """
+            MATCH (start {arxiv_id: $start_id}), (end {arxiv_id: $end_id})
+            MATCH p = shortestPath((start)-[*..6]-(end))
+            RETURN p
+            """
+            # Not: id'ler hem arxiv_id (makale) hem name (yazar/kavram) olabilir.
+            # Dugumleri daha genel bir 'id' property'si uzerinden aramak daha iyi olabilir
+            # ama su anki semada arxiv_id ve name kullaniliyor.
+            
+            # Daha esnek bir arama sorgusu:
+            query = """
+            MATCH (start), (end)
+            WHERE (start.arxiv_id = $start_id OR start.name = $start_id)
+              AND (end.arxiv_id = $end_id OR end.name = $end_id)
+            MATCH p = shortestPath((start)-[*..6]-(end))
+            RETURN 
+                [n in nodes(p) | {
+                    id: coalesce(n.arxiv_id, n.name), 
+                    label: coalesce(n.title, n.name, n.arxiv_id),
+                    group: labels(n)[0]
+                }] AS nodes,
+                [r in relationships(p) | {
+                    id: id(r),
+                    from: coalesce(startNode(r).arxiv_id, startNode(r).name),
+                    to: coalesce(endNode(r).arxiv_id, endNode(r).name),
+                    label: type(r)
+                }] AS edges
+            """
+            
+            result = session.run(query, start_id=start_id, end_id=end_id).single()
+            if result:
+                return {
+                    "nodes": result["nodes"],
+                    "edges": result["edges"]
+                }
+            return {"nodes": [], "edges": []}
+
+    def get_library_stats(self) -> dict:
+        """Kullanicinin kutuphanesi icin detayli analitik istatistikler dondurur."""
+        with db.neo4j_driver.session() as session:
+            # Temel sayilar
+            counts = session.run("""
                 MATCH (p:Paper)
                 OPTIONAL MATCH (a:Author)-[:WROTE]->(p)
                 OPTIONAL MATCH (p)-[:MENTIONS]->(c:Concept)
@@ -210,11 +320,54 @@ class GraphService:
                     count(DISTINCT r) AS citation_edges
             """).single()
 
+            # En cok atif alanlar
+            top_papers_res = session.run("""
+                MATCH (p:Paper)
+                OPTIONAL MATCH (other:Paper)-[r:CITES]->(p)
+                WITH p, count(r) AS citations
+                ORDER BY citations DESC
+                LIMIT 5
+                MATCH (p)
+                OPTIONAL MATCH (a:Author)-[:WROTE]->(p)
+                RETURN p.title AS title, citations, collect(DISTINCT a.name) AS authors, p.year AS year
+            """)
+            top_cited_papers = [
+                {"title": r["title"], "citations": r["citations"], "authors": r["authors"], "year": r["year"]}
+                for r in top_papers_res
+            ]
+
+            # H-Index Hesaplama (Kutuphane icindeki atiflara gore)
+            # h-endeksi: h adet makalenin her birinin en az h atif almasi
+            h_index_res = session.run("""
+                MATCH (p:Paper)
+                OPTIONAL MATCH (other:Paper)-[r:CITES]->(p)
+                WITH p, count(r) AS citations
+                ORDER BY citations DESC
+                WITH collect(citations) AS citation_list
+                UNWIND range(1, size(citation_list)) AS i
+                WITH i, citation_list[i-1] AS c
+                WHERE c >= i
+                RETURN max(i) AS h_index
+            """).single()
+            h_index = h_index_res["h_index"] if h_index_res and h_index_res["h_index"] else 0
+
+            # Yillik buyume
+            growth_res = session.run("""
+                MATCH (p:Paper)
+                WHERE p.year IS NOT NULL
+                RETURN p.year AS year, count(p) AS count
+                ORDER BY year ASC
+            """)
+            growth_by_year = [{"year": r["year"], "count": r["count"]} for r in growth_res]
+
         return {
-            "paper_count": record["paper_count"] if record else 0,
-            "author_count": record["author_count"] if record else 0,
-            "concept_count": record["concept_count"] if record else 0,
-            "citation_edges": record["citation_edges"] if record else 0,
+            "paper_count": counts["paper_count"] if counts else 0,
+            "author_count": counts["author_count"] if counts else 0,
+            "concept_count": counts["concept_count"] if counts else 0,
+            "citation_edges": counts["citation_edges"] if counts else 0,
+            "top_cited_papers": top_cited_papers,
+            "h_index": h_index,
+            "growth_by_year": growth_by_year
         }
 
 # Singleton nesnesi

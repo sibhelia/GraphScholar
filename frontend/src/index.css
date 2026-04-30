@@ -64,16 +64,20 @@ a {
 .workspace-shell {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   max-width: 1600px;
   margin: 0 auto;
-  height: calc(100vh - 32px)
+  height: 100vh;
+  padding: 16px;
+  overflow: hidden;
 }
 
 .workspace-main {
   flex: 1;
   min-height: 0;
-  overflow: hidden
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 

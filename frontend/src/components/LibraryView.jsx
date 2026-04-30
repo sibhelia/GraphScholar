@@ -11,7 +11,7 @@ import {
     Upload,
 } from 'lucide-react';
 
-const LibraryView = ({ onUpload, isUploading, uploadStatus, papers = [], libraryStats, setActiveTab, previousTab }) => {
+const LibraryView = ({ onUpload, onAddPaper, isUploading, uploadStatus, papers = [], libraryStats, setActiveTab, previousTab }) => {
     const stats = [
         { label: 'Makale', value: libraryStats?.paper_count ?? 0, icon: FileText },
         { label: 'Yazar', value: libraryStats?.author_count ?? 0, icon: Share2 },
@@ -76,6 +76,38 @@ const LibraryView = ({ onUpload, isUploading, uploadStatus, papers = [], library
                     </div>
                 </label>
 
+                {/* Quick Add by Title */}
+                <div style={{ padding: '24px', borderLeft: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '12px', justifyContent: 'center', background: '#f8fafc' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Hızlı Makale Ekle</span>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        <input 
+                            type="text" 
+                            id="quick-add-input"
+                            placeholder="Makale başlığı girin..." 
+                            style={{ padding: '10px 14px', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '0.85rem', width: '220px', outline: 'none', background: '#fff' }}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && e.target.value) {
+                                    onAddPaper(e.target.value);
+                                    e.target.value = '';
+                                }
+                            }}
+                        />
+                        <button 
+                            onClick={() => {
+                                const input = document.getElementById('quick-add-input');
+                                if (input.value) {
+                                    onAddPaper(input.value);
+                                    input.value = '';
+                                }
+                            }}
+                            style={{ background: '#0f172a', color: '#fff', padding: '10px', borderRadius: '10px', display: 'grid', placeItems: 'center', cursor: 'pointer' }}
+                        >
+                            <Sparkles size={16} />
+                        </button>
+                    </div>
+                    <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>ArXiv veritabanından anında çeker.</span>
+                </div>
+
                 <div className="library-visual-panel">
                     <div className="library-hero-badge">
                         <Sparkles size={16} />
@@ -102,6 +134,26 @@ const LibraryView = ({ onUpload, isUploading, uploadStatus, papers = [], library
                         <div className="eyebrow">Koleksiyon</div>
                         <h3>{papers.length} kayıt</h3>
                     </div>
+                    <button
+                        onClick={async () => {
+                            try {
+                                const res = await fetch('http://localhost:8080/enrich-authors', { method: 'POST' });
+                                const data = await res.json();
+                                alert(data.message || 'Yazar zenginleştirme başladı.');
+                            } catch (e) {
+                                alert('Bağlantı hatası.');
+                            }
+                        }}
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: '8px',
+                            padding: '8px 16px', borderRadius: '10px', fontSize: '0.8rem',
+                            fontWeight: '700', cursor: 'pointer',
+                            background: '#f5f3ff', color: '#7c3aed',
+                            border: '1px solid #ede9fe'
+                        }}
+                    >
+                        <Share2 size={14} /> Yazarları Güncelle
+                    </button>
                 </div>
 
                 <div className="library-paper-grid">

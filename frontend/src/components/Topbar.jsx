@@ -27,7 +27,7 @@ const NAV_ITEMS = [
     { id: 'analytics', icon: TrendingUp, label: 'Analitik' },
 ];
 
-const Topbar = ({ activeTab, setActiveTab, libraryStats }) => {
+const Topbar = ({ activeTab, setActiveTab, libraryStats, isUploading = false, uploadStatus = '' }) => {
     return (
         <header className="topbar-shell topbar-shell-nav enterprise-topbar">
             <div className="topbar-primary-row enterprise-topbar-row">
@@ -44,6 +44,12 @@ const Topbar = ({ activeTab, setActiveTab, libraryStats }) => {
                 </button>
 
                 <div className="topbar-utility-bar">
+                    {isUploading && (
+                        <div style={{ background: 'rgba(99, 102, 241, 0.1)', color: '#6366f1', padding: '6px 14px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', fontWeight: '700', animation: 'pulse 2s infinite' }}>
+                            <Orbit size={14} className="animate-spin" />
+                            <span>{uploadStatus}</span>
+                        </div>
+                    )}
                     <div className="topbar-chip enterprise-chip">
                         <Search size={14} />
                         <span>Yerel arama hazır</span>

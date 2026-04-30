@@ -1,18 +1,20 @@
 import { ArrowUpRight, Radar, Target, TrendingUp, Users, Share2, Award, Activity, BarChart3, ChevronRight } from 'lucide-react';
 
 const AnalyticsView = ({ papers = [], libraryStats, graphData }) => {
+    const stats = libraryStats || {};
+    
     const impactMetrics = [
-        { name: 'H-Index Tahmini', value: '12', icon: Award, color: '#8b5cf6', desc: 'Kütüphane genelindeki etki puanı.' },
-        { name: 'Atıf Yoğunluğu', value: libraryStats?.citation_edges ?? '84', icon: Share2, color: '#f59e0b', desc: 'Makaleler arası referans bağları.' },
-        { name: 'Yıllık Artış', value: '%14', icon: Activity, color: '#10b981', desc: 'Yeni eklenen kaynakların ivmesi.' },
+        { name: 'H-Index Tahmini', value: stats.h_index || '0', icon: Award, color: '#8b5cf6', desc: 'Kütüphane genelindeki etki puanı.' },
+        { name: 'Atıf Yoğunluğu', value: stats.citation_edges || '0', icon: Share2, color: '#f59e0b', desc: 'Makaleler arası referans bağları.' },
+        { name: 'Toplam Yazar', value: stats.author_count || '0', icon: Users, color: '#10b981', desc: 'Ağınızdaki aktif araştırmacı sayısı.' },
     ];
 
-    const topCitedPapers = papers.slice(0, 4).map((paper, index) => ({
+    const topCitedPapers = (stats.top_cited_papers || []).map((paper) => ({
         title: paper.title,
-        citations: Math.floor(Math.random() * 50) + 10,
+        citations: paper.citations || 0,
         authors: (paper.authors || []).slice(0, 2).join(', ') || 'Anonim Yazar',
         year: paper.year || '2024'
-    })).sort((a, b) => b.citations - a.citations);
+    }));
 
     return (
         <section className="page-scroll page-analytics" style={{ padding: '24px' }}>

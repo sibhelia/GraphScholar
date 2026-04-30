@@ -12,7 +12,7 @@ const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [],
     const [stats, setStats] = useState({ papers: papers.length, chunk_count: 0, nodes: 0, edges: 0 });
 
     useEffect(() => {
-        fetch('http://localhost:8000/library/overview')
+        fetch('http://localhost:8080/library/overview')
             .then(res => res.json())
             .then(data => {
                 if (data.stats) {

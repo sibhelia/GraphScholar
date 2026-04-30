@@ -141,6 +141,27 @@ function App() {
     }
   };
 
+  const handleSeed = async () => {
+    setUploadStatus("Demo veriler ekleniyor...");
+    setIsUploading(true);
+    try {
+      const response = await fetch('http://localhost:8080/seed-demo', { method: 'POST' });
+      const data = await response.json();
+      if (data.status === 'success') {
+        await loadWorkspaceData();
+        setUploadStatus(data.message);
+        setTimeout(() => setUploadStatus(""), 4000);
+      } else {
+        setUploadStatus("Hata: " + (data.detail || "Bilinmeyen hata"));
+      }
+    } catch (error) {
+      console.error("Seed hatası:", error);
+      setUploadStatus("Bağlantı hatası. Docker çalışıyor mu?");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <div className="app-shell">
       <div className="workspace-shell">
@@ -148,6 +169,8 @@ function App() {
           activeTab={activeTab}
           setActiveTab={handleTabChange}
           libraryStats={libraryStats}
+          uploadStatus={uploadStatus}
+          isUploading={isUploading}
         />
 
         <main className="workspace-main">
@@ -167,14 +190,16 @@ function App() {
               papers={papers}
               libraryStats={libraryStats}
               setActiveTab={handleTabChange}
+              onSeed={handleSeed}
             />
           )}
 
-          {activeTab === 'graph' && <GraphView data={graphData} papers={papers} />}
+          {activeTab === 'graph' && <GraphView data={graphData} papers={papers} onSeed={handleSeed} isSeeding={isUploading} />}
 
           {activeTab === 'library' && (
             <LibraryView
               onUpload={handleUpload}
+              onAddPaper={handleAddPaper}
               isUploading={isUploading}
               uploadStatus={uploadStatus}
               papers={papers}
