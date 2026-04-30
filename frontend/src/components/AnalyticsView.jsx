@@ -1,19 +1,20 @@
-import { ArrowUpRight, Radar, Target, TrendingUp, Users, Share2, Award, Activity, BarChart3, ChevronRight } from 'lucide-react';
+import { ArrowUpRight, Radar, Target, TrendingUp, Users, Share2, Award, Activity, BarChart3, ChevronRight, FileText, BookOpen, Quote } from 'lucide-react';
 
 const AnalyticsView = ({ papers = [], libraryStats, graphData }) => {
     const stats = libraryStats || {};
     
     const impactMetrics = [
-        { name: 'H-Index Tahmini', value: stats.h_index || '0', icon: Award, color: '#8b5cf6', desc: 'Kütüphane genelindeki etki puanı.' },
-        { name: 'Atıf Yoğunluğu', value: stats.citation_edges || '0', icon: Share2, color: '#f59e0b', desc: 'Makaleler arası referans bağları.' },
-        { name: 'Toplam Yazar', value: stats.author_count || '0', icon: Users, color: '#10b981', desc: 'Ağınızdaki aktif araştırmacı sayısı.' },
+        { name: 'Toplam Belge', value: stats.paper_count || '0', icon: FileText, color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.05)', desc: 'İşlenen akademik makale.' },
+        { name: 'H-Index Skoru', value: stats.h_index || '0', icon: Award, color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.05)', desc: 'Kütüphane genelindeki etki puanı.' },
+        { name: 'Atıf Ağı', value: stats.citation_edges || '0', icon: Share2, color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.05)', desc: 'Makaleler arası referans bağları.' },
+        { name: 'Kolektif Yazar', value: stats.author_count || '0', icon: Users, color: '#10b981', bg: 'rgba(16, 185, 129, 0.05)', desc: 'Ağınızdaki aktif araştırmacı sayısı.' },
     ];
 
     const topCitedPapers = (stats.top_cited_papers || []).map((paper) => ({
         title: paper.title,
         citations: paper.citations || 0,
-        authors: (paper.authors || []).slice(0, 2).join(', ') || 'Anonim Yazar',
-        year: paper.year || '2024'
+        authors: (paper.authors || []).slice(0, 2).join(', '),
+        year: paper.year || ''
     }));
 
     return (
@@ -29,25 +30,16 @@ const AnalyticsView = ({ papers = [], libraryStats, graphData }) => {
             </div>
 
             {/* Impact Metrics Grid */}
-            <div className="analytics-metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+            <div className="analytics-metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
                 {impactMetrics.map((metric) => (
-                    <article key={metric.name} className="surface-card" style={{ 
-                        padding: '24px', 
-                        background: '#ffffff', 
-                        border: '1px solid #e2e8f0', 
-                        borderRadius: '20px', 
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '20px'
-                    }}>
-                        <div style={{ background: `${metric.color}15`, color: metric.color, padding: '16px', borderRadius: '16px' }}>
-                            <metric.icon size={28} />
+                    <article key={metric.name} style={{ background: metric.bg, padding: '20px', borderRadius: '16px', border: `1px solid ${metric.color}33`, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#fff', color: metric.color, display: 'grid', placeItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                            <metric.icon size={16} />
                         </div>
-                        <div>
-                            <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: '600', display: 'block', marginBottom: '4px' }}>{metric.name}</span>
-                            <strong style={{ fontSize: '1.5rem', color: '#0f172a', fontWeight: '800', display: 'block' }}>{metric.value}</strong>
-                            <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px' }}>{metric.desc}</p>
+                        <div style={{ marginTop: '4px' }}>
+                            <strong style={{ fontSize: '1.6rem', color: '#0f172a', fontWeight: '800', lineHeight: '1.2', display: 'block' }}>{metric.value}</strong>
+                            <span style={{ fontSize: '0.9rem', color: '#475569', fontWeight: '700', display: 'block', marginBottom: '2px' }}>{metric.name}</span>
+                            <span style={{ fontSize: '0.75rem', color: '#64748b', lineHeight: '1.3' }}>{metric.desc}</span>
                         </div>
                     </article>
                 ))}
@@ -81,7 +73,11 @@ const AnalyticsView = ({ papers = [], libraryStats, graphData }) => {
                             }}>
                                 <div style={{ maxWidth: '75%' }}>
                                     <h4 style={{ fontSize: '0.88rem', color: '#0f172a', fontWeight: '700', marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{paper.title}</h4>
-                                    <p style={{ fontSize: '0.75rem', color: '#64748b' }}>{paper.authors} • {paper.year}</p>
+                                    {(paper.authors || paper.year) && (
+                                        <p style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                                            {paper.authors}{paper.authors && paper.year ? ' • ' : ''}{paper.year}
+                                        </p>
+                                    )}
                                 </div>
                                 <div style={{ textAlign: 'right' }}>
                                     <div style={{ fontSize: '1rem', fontWeight: '800', color: '#8b5cf6' }}>{paper.citations}</div>

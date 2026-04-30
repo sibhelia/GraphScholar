@@ -39,7 +39,7 @@ const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [],
         <section className="page-chat">
             <div className="chat-header-shell">
                 <div>
-                    <div className="eyebrow">Hibrit RAG Arama</div>
+                    <div className="eyebrow">AKILLI ASİSTAN</div>
                     <h2>Araştırma Asistanı</h2>
                     <p>Kütüphanenizdeki makaleler, yazar ağları ve kavramlar arasında semantik bağlar kurarak analiz yapın.</p>
                 </div>
@@ -83,13 +83,13 @@ const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [],
                     <div className="chat-container modern" ref={scrollRef}>
                         {messages.length === 0 && (
                             <div className="chat-empty-state" style={{ height: '100%', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                <div className="chat-empty-icon" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', border: 'none', width: '80px', height: '80px' }}>
-                                    <BotMessageSquare size={48} />
+                                <div className="chat-empty-icon" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', border: 'none', width: 'calc(40px + 1vw)', height: 'calc(40px + 1vw)' }}>
+                                    <BotMessageSquare size={24} />
                                 </div>
-                                <h3 style={{ marginTop: '16px', color: '#0f172a' }}>Akıllı Araştırma Asistanına Hoş Geldiniz</h3>
-                                <p style={{ maxWidth: '600px', margin: '10px auto 24px', color: '#64748b', lineHeight: '1.6' }}>
-                                    Ben sizin kişisel akademik yapay zekanızım. Kütüphanenize yüklediğiniz makaleleri okuyabilir, analiz edebilir ve kendi aralarında bağ kurabilirim.<br/><br/>
-                                    <strong>Neler yapabiliriz?</strong> Makaleler arası yöntemleri karşılaştırabiliriz, çelişen bulguları tespit edebiliriz, karmaşık kavramları sadeleştirebiliriz veya belirli bir makaleden doğrudan kaynak/pasaj çekebiliriz. 
+                                <h3 style={{ marginTop: 'calc(8px + 0.3vw)', color: '#0f172a', fontSize: 'calc(0.9rem + 0.2vw)' }}>Akıllı Araştırma Asistanına Hoş Geldiniz</h3>
+                                <p style={{ maxWidth: '600px', margin: 'calc(6px + 0.2vw) auto calc(12px + 0.4vw)', color: '#64748b', lineHeight: '1.5', fontSize: 'calc(0.75rem + 0.15vw)' }}>
+                                    Ben sizin kişisel akademik yapay zekanızım. Kütüphanenize yüklediğiniz makaleleri okuyabilir, analiz edebilir ve kendi aralarında bağ kurabilirim.
+                                    <br/><strong>Neler yapabiliriz?</strong> Makaleler arası yöntemleri karşılaştırabiliriz, çelişen bulguları tespit edebiliriz, karmaşık kavramları sadeleştirebiliriz veya belirli bir makaleden doğrudan kaynak/pasaj çekebiliriz. 
                                 </p>
                                 <div className="prompt-list" style={{ justifyContent: 'center' }}>
                                     <button className="prompt-chip" onClick={() => setInput('Mevcut makaleler arasındaki en temel metodolojik farklılıklar nelerdir?')}>
@@ -177,7 +177,7 @@ const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [],
                         <div />
                     </div>
 
-                    <div className="chat-input-area modern" style={{ background: '#ffffff', borderTop: '1px solid #e2e8f0' }}>
+                    <div className="chat-input-area modern">
                         <div className="chat-input-wrap">
                             <Filter size={16} className="chat-input-icon" style={{ color: '#94a3b8' }} />
                             <input
@@ -206,26 +206,26 @@ const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [],
                     </div>
                 </div>
 
-                <aside className="chat-context-panel" style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '10px' }}>
-                    <div className="surface-card compact-pad" style={{ background: '#ffffff', borderColor: '#e2e8f0', flex: 1.5, display: 'flex', flexDirection: 'column' }}>
-                        <div className="eyebrow" style={{ color: '#64748b' }}>KÜTÜPHANE DURUMU</div>
-                        <h3 style={{ color: '#0f172a', fontSize: '1.1rem', marginBottom: '8px' }}>
+                <aside className="chat-context-panel" style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '16px' }}>
+                    <div className="surface-card" style={{ background: '#ffffff', borderColor: '#e2e8f0', display: 'flex', flexDirection: 'column', padding: '20px', gap: '12px', flex: 1 }}>
+                        <div className="eyebrow" style={{ color: '#64748b', fontSize: '0.7rem' }}>KÜTÜPHANE DURUMU</div>
+                        <h3 style={{ color: '#0f172a', fontSize: '1.1rem', margin: 0 }}>
                             Akademik Kütüphaneniz
                         </h3>
                         
-                        <div style={{ fontSize: '0.8rem', color: '#475569', lineHeight: '1.5', flex: 1 }}>
+                        <div style={{ fontSize: '0.85rem', color: '#475569', lineHeight: '1.5', flex: 1 }}>
                             <p style={{ marginBottom: '8px' }}>
-                                Kütüphanenizde bulunan <strong>{stats.papers || papers.length} makale</strong>, <strong>{stats.chunk_count || 0}</strong> ayrı bilgi parçasına bölünerek sisteme işlendi.
+                                Kütüphanenizde <strong>{stats.paper_count || papers.length} makale</strong>, <strong>{stats.chunk_count || 0}</strong> parça halinde işlendi.
                             </p>
                             <p style={{ marginBottom: '8px' }}>
-                                Literatür içerisinden <strong>{stats.nodes || 0}</strong> akademik kavram ve <strong>{stats.edges || 0}</strong> stratejik ilişki haritalandı.
+                                <strong>{stats.concept_count || 0}</strong> kavram ve <strong>{stats.citation_edges || 0}</strong> ilişki haritalandı.
                             </p>
                             <p>
-                                Sistem şu an bu verileri kullanarak sorularınıza <strong>kanıtlı ve hızlı</strong> yanıtlar üretmeye hazır.
+                                Sistem sorularınıza kanıtlı yanıtlar üretmeye hazır.
                             </p>
                         </div>
 
-                        <div style={{ marginTop: 'auto', paddingTop: '10px' }}>
+                        <div style={{ marginTop: 'auto' }}>
                             <button 
                                 className="btn-secondary" 
                                 style={{ 
@@ -234,7 +234,7 @@ const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [],
                                     alignItems: 'center', 
                                     justifyContent: 'center', 
                                     gap: '8px', 
-                                    fontSize: '0.8rem',
+                                    fontSize: '0.85rem',
                                     padding: '12px',
                                     borderRadius: '10px',
                                     background: 'rgba(16, 185, 129, 0.1)',
@@ -248,25 +248,25 @@ const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [],
                                 onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(16, 185, 129, 0.2)'; }}
                                 onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)'; }}
                             >
-                                <Database size={14} /> Kütüphaneyi Yönet
+                                <Database size={16} /> Kütüphaneyi Yönet
                             </button>
                         </div>
                     </div>
                     
-                    <div className="surface-card compact-pad" style={{ background: '#ffffff', borderColor: '#e2e8f0', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                        <div className="eyebrow" style={{ color: '#64748b' }}>SİSTEM YETENEKLERİ</div>
-                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '0.8rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: '14px', flex: 1, justifyContent: 'center' }}>
+                    <div className="surface-card" style={{ background: '#ffffff', borderColor: '#e2e8f0', display: 'flex', flexDirection: 'column', padding: '20px', gap: '12px', flex: 1 }}>
+                        <div className="eyebrow" style={{ color: '#64748b', fontSize: '0.7rem' }}>SİSTEM YETENEKLERİ</div>
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '0.85rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: '14px', flex: 1, justifyContent: 'center' }}>
                             <li style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                                <Compass size={22} style={{ color: '#10b981', marginTop: '1px', flexShrink: 0 }} />
-                                <span>Vektör ve Grafik veritabanlarını kullanarak hibrit arama yapar.</span>
+                                <Compass size={20} style={{ color: '#10b981', marginTop: '2px', flexShrink: 0 }} />
+                                <span>Vektör ve Grafik üzerinden hibrit arama yapar.</span>
                             </li>
                             <li style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                                <FileText size={22} style={{ color: '#3b82f6', marginTop: '1px', flexShrink: 0 }} />
-                                <span>Cevapları doğrudan orijinal kaynak metinlere dayandırır.</span>
+                                <FileText size={20} style={{ color: '#3b82f6', marginTop: '2px', flexShrink: 0 }} />
+                                <span>Cevapları orijinal kaynak metinlere dayandırır.</span>
                             </li>
                             <li style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                                <AlertTriangle size={22} style={{ color: '#f59e0b', marginTop: '1px', flexShrink: 0 }} />
-                                <span>Farklı makaleler arasındaki metodolojik çelişkileri tespit eder.</span>
+                                <AlertTriangle size={20} style={{ color: '#f59e0b', marginTop: '2px', flexShrink: 0 }} />
+                                <span>Makaleler arası metodolojik çelişkileri bulur.</span>
                             </li>
                         </ul>
                     </div>

@@ -20,10 +20,10 @@ const LibraryView = ({ onUpload, onAddPaper, isUploading, uploadStatus, papers =
     const ITEMS_PER_PAGE = 15;
 
     const stats = [
-        { label: 'Makale', value: libraryStats?.paper_count ?? 0, icon: FileText },
-        { label: 'Yazar', value: libraryStats?.author_count ?? 0, icon: Share2 },
-        { label: 'Kavram', value: libraryStats?.concept_count ?? 0, icon: BookOpen },
-        { label: 'Parça', value: libraryStats?.chunk_count ?? 0, icon: Quote },
+        { label: 'Makale', value: libraryStats?.paper_count ?? 0, icon: FileText, color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.05)', desc: 'Korpusunuzdaki belge sayısı' },
+        { label: 'Yazar', value: libraryStats?.author_count ?? 0, icon: Share2, color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.05)', desc: 'Ağdaki araştırmacı sayısı' },
+        { label: 'Kavram', value: libraryStats?.concept_count ?? 0, icon: BookOpen, color: '#10b981', bg: 'rgba(16, 185, 129, 0.05)', desc: 'Tespit edilen anahtar kelime' },
+        { label: 'Parça', value: libraryStats?.chunk_count ?? 0, icon: Quote, color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.05)', desc: 'Vektörize edilmiş semantik veri' },
     ];
 
     const hasSuccessStatus = uploadStatus?.toLowerCase().includes('başarı');
@@ -34,7 +34,7 @@ const LibraryView = ({ onUpload, onAddPaper, isUploading, uploadStatus, papers =
 
     return (
         <section className="page-scroll page-library">
-            <div className="page-header library-header-minimal" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <div className="page-header library-header-minimal" style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '32px' }}>
                 <button 
                     className="btn-back"
                     onClick={() => setActiveTab(previousTab || 'chat')}
@@ -56,13 +56,16 @@ const LibraryView = ({ onUpload, onAddPaper, isUploading, uploadStatus, papers =
                     <ArrowLeft size={20} />
                 </button>
                 <div>
-                    <div className="eyebrow">Kişisel korpus</div>
-                    <h2>Kütüphane</h2>
+                    <div className="eyebrow">BELGE YÖNETİMİ</div>
+                    <h2 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.03em' }}>Kütüphane</h2>
+                    <p style={{ color: '#64748b', fontSize: '0.88rem', marginTop: '6px', lineHeight: '1.5' }}>
+                        Yerel PDF'lerinizi yükleyin veya ArXiv'den doğrudan makale ekleyin. Tüm belgeleriniz otomatik olarak analiz edilir.
+                    </p>
                 </div>
             </div>
 
-            <section className="library-hero-card library-hero-card-minimal">
-                <label className={`upload-dropzone upload-dropzone-hero ${isUploading ? 'loading' : ''}`}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+                <label className={`upload-dropzone upload-dropzone-hero ${isUploading ? 'loading' : ''}`} style={{ borderRadius: '20px', border: '1px dashed rgba(16, 185, 129, 0.4)', background: 'rgba(16, 185, 129, 0.04)' }}>
                     <input
                         type="file"
                         accept=".pdf"
@@ -71,7 +74,7 @@ const LibraryView = ({ onUpload, onAddPaper, isUploading, uploadStatus, papers =
                         disabled={isUploading}
                     />
 
-                    <div className="upload-icon-wrap">
+                    <div className="upload-icon-wrap" style={{ background: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                         {isUploading ? (
                             <Loader2 size={28} className="animate-spin" />
                         ) : hasSuccessStatus ? (
@@ -82,70 +85,69 @@ const LibraryView = ({ onUpload, onAddPaper, isUploading, uploadStatus, papers =
                     </div>
 
                     <div className="upload-copy">
-                        <strong>{isUploading ? 'Yükleniyor' : 'PDF yükle'}</strong>
-                        <span>{uploadStatus || 'Dosya seç veya sürükle bırak'}</span>
+                        <strong style={{ fontSize: '1.05rem', color: '#064e3b' }}>{isUploading ? 'Yükleniyor...' : 'PDF Yükle'}</strong>
+                        <span style={{ color: '#047857' }}>{uploadStatus || 'Sürükle bırak veya seç'}</span>
                     </div>
                 </label>
 
-                <div style={{ display: 'none' }}></div>
-
-                <div className="library-visual-panel">
-                    <div className="library-hero-badge">
-                        <Sparkles size={16} />
-                        <span>Düzenli görünüm</span>
+                <div style={{ borderRadius: '20px', border: '1px dashed rgba(59, 130, 246, 0.4)', background: 'rgba(59, 130, 246, 0.04)', padding: '32px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#fff', color: '#3b82f6', display: 'grid', placeItems: 'center', marginBottom: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+                        <BookOpen size={24} />
                     </div>
-
-                    <div className="library-visual-grid">
-                        {stats.map((stat) => (
-                            <article key={stat.label} className="library-visual-card">
-                                <div className="stat-icon">
-                                    <stat.icon size={16} />
-                                </div>
-                                <strong>{stat.value}</strong>
-                                <span>{stat.label}</span>
-                            </article>
-                        ))}
+                    <strong style={{ fontSize: '1.05rem', color: '#1e3a8a', marginBottom: '4px' }}>ArXiv'den İndir</strong>
+                    <span style={{ fontSize: '0.8rem', color: '#3b82f6', marginBottom: '16px' }}>Makale başlığını girerek anında ekleyin</span>
+                    
+                    <div style={{ display: 'flex', gap: '8px', width: '80%', maxWidth: '300px' }}>
+                        <input 
+                            type="text" 
+                            id="hero-quick-add"
+                            placeholder="Makale başlığı..." 
+                            style={{ flex: 1, padding: '10px 14px', borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '0.85rem', outline: 'none', background: '#f8fafc' }}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && e.target.value) {
+                                    onAddPaper(e.target.value);
+                                    e.target.value = '';
+                                    setCurrentPage(1);
+                                }
+                            }}
+                        />
+                        <button 
+                            onClick={() => {
+                                const input = document.getElementById('hero-quick-add');
+                                if (input.value) {
+                                    onAddPaper(input.value);
+                                    input.value = '';
+                                    setCurrentPage(1);
+                                }
+                            }}
+                            style={{ background: '#0f172a', color: '#fff', padding: '10px 16px', borderRadius: '12px', display: 'grid', placeItems: 'center', cursor: 'pointer', border: 'none', fontWeight: '600' }}
+                        >
+                            Ekle
+                        </button>
                     </div>
                 </div>
-            </section>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
+                {stats.map((stat) => (
+                    <article key={stat.label} style={{ background: stat.bg, padding: '20px', borderRadius: '16px', border: `1px solid ${stat.color}33`, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#fff', color: stat.color, display: 'grid', placeItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                            <stat.icon size={16} />
+                        </div>
+                        <div style={{ marginTop: '4px' }}>
+                            <strong style={{ fontSize: '1.6rem', color: '#0f172a', fontWeight: '800', lineHeight: '1.2', display: 'block' }}>{stat.value}</strong>
+                            <span style={{ fontSize: '0.9rem', color: '#475569', fontWeight: '700', display: 'block', marginBottom: '2px' }}>{stat.label} Sayısı</span>
+                            <span style={{ fontSize: '0.75rem', color: '#64748b', lineHeight: '1.3' }}>{stat.desc}</span>
+                        </div>
+                    </article>
+                ))}
+            </div>
 
             <section className="surface-card library-collection-card">
                 <div className="section-head library-section-head">
                     <div>
                         <div className="eyebrow">Koleksiyon</div>
                         <h3>{papers.length} kayıt</h3>
-                    </div>
-                    
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                            <input 
-                                type="text" 
-                                id="quick-add-input"
-                                placeholder="Makale başlığı ile ArXiv'den ekle..." 
-                                style={{ padding: '8px 12px', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '0.8rem', width: '240px', outline: 'none', background: '#fff' }}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && e.target.value) {
-                                        onAddPaper(e.target.value);
-                                        e.target.value = '';
-                                        setCurrentPage(1); // Reset to first page
-                                    }
-                                }}
-                            />
-                            <button 
-                                onClick={() => {
-                                    const input = document.getElementById('quick-add-input');
-                                    if (input.value) {
-                                        onAddPaper(input.value);
-                                        input.value = '';
-                                        setCurrentPage(1);
-                                    }
-                                }}
-                                style={{ background: '#10b981', color: '#fff', padding: '8px', borderRadius: '10px', display: 'grid', placeItems: 'center', cursor: 'pointer', border: 'none' }}
-                                title="ArXiv'den İndir"
-                            >
-                                <Sparkles size={16} />
-                            </button>
-                        </div>
                     </div>
                 </div>
 
