@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import Topbar from './components/Topbar';
 import Footer from './components/Footer';
 import GraphView from './components/GraphView';
@@ -8,16 +9,25 @@ import AnalyticsView from './components/AnalyticsView';
 import WorkspaceView from './components/WorkspaceView';
 import { searchApi } from './services/api';
 
-function App() {
-  const [activeTab, setActiveTab] = useState('chat');
+function AppInner() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const pathToTab = {
+    '/chat': 'chat',
+    '/workspace': 'workspace',
+    '/graph': 'graph',
+    '/library': 'library',
+    '/analytics': 'analytics',
+  };
+  const activeTab = pathToTab[location.pathname] || 'chat';
   const [previousTab, setPreviousTab] = useState('chat');
 
   const handleTabChange = (tab) => {
-    if (tab !== activeTab) {
-      setPreviousTab(activeTab);
-      setActiveTab(tab);
-    }
+    setPreviousTab(activeTab);
+    navigate('/' + tab);
   };
+
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -33,7 +43,6 @@ function App() {
         searchApi.getLibraryOverview(),
         searchApi.getGraph(),
       ]);
-
       setPapers(papersResponse.data.papers || []);
       setLibraryStats(overviewResponse.data.stats || null);
       setGraphData(graphResponse.data || { nodes: [], edges: [] });
@@ -43,10 +52,7 @@ function App() {
   };
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      void loadWorkspaceData();
-    }, 0);
-
+    const timer = setTimeout(() => { void loadWorkspaceData(); }, 0);
     return () => clearTimeout(timer);
   }, []);
 
@@ -54,7 +60,6 @@ function App() {
     if (!file) return;
     setIsUploading(true);
     setUploadStatus(`Yükleniyor: ${file.name}...`);
-
     try {
       await searchApi.analyzePdf(file);
       await loadWorkspaceData();
@@ -70,56 +75,36 @@ function App() {
   };
 
   const handleSendMessage = async (text, options = {}) => {
-    const { mode = 'discovery', source = 'private' } = options;
-    const newUserMsg = { role: 'user', text };
-    setMessages((prev) => [...prev, newUserMsg]);
+    const { source = 'private' } = options;
+    setMessages((prev) => [...prev, { role: 'user', text }]);
     setIsLoading(true);
-
     try {
       if (source === 'global') {
-        // ArXiv Araması Yap
         const response = await searchApi.searchArxiv(text);
         const results = response.data.results;
-
         if (results.length === 0) {
-          setMessages((prev) => [...prev, {
-            role: 'assistant',
-            text: `ArXiv'de "${text}" ile ilgili makale bulamadım. Farklı anahtar kelimeler deneyebilirsin.`
-          }]);
+          setMessages((prev) => [...prev, { role: 'assistant', text: `ArXiv'de "${text}" ile ilgili makale bulamadım.` }]);
         } else {
-          const aiMsg = {
+          setMessages((prev) => [...prev, {
             role: 'assistant',
             text: `"${text}" konusuyla ilgili ArXiv'de şu makaleleri buldum:`,
             isSearchResult: true,
-            sources: results.map(r => ({
-              title: r.title,
-              excerpt: r.summary,
-              year: r.published,
-              paper_id: r.arxiv_id,
-              authors: r.authors,
-              canAdd: true
-            }))
-          };
-          setMessages((prev) => [...prev, aiMsg]);
+            sources: results.map(r => ({ title: r.title, excerpt: r.summary, year: r.published, paper_id: r.arxiv_id, authors: r.authors, canAdd: true }))
+          }]);
         }
       } else {
-        // Mevcut Kütüphanede Hibrit Arama Yap (RAG)
         const response = await searchApi.query(text);
-        const aiMsg = {
+        setMessages((prev) => [...prev, {
           role: 'assistant',
           text: response.data.answer,
           papers: response.data.relevant_papers,
           chunks_count: response.data.source_chunks_count,
           sources: response.data.sources || [],
-        };
-        setMessages((prev) => [...prev, aiMsg]);
+        }]);
       }
     } catch (error) {
       console.error('Sorgu hatası:', error);
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', text: 'Üzgünüm, isteğinizi işlerken bir hata oluştu.' },
-      ]);
+      setMessages((prev) => [...prev, { role: 'assistant', text: 'Üzgünüm, bir hata oluştu.' }]);
     } finally {
       setIsLoading(false);
     }
@@ -174,49 +159,38 @@ function App() {
         />
 
         <main className="workspace-main">
-          {activeTab === 'chat' && (
-            <ChatView
-              messages={messages}
-              onSendMessage={handleSendMessage}
-              onAddPaper={handleAddPaper}
-              isLoading={isLoading}
-              papers={papers}
-              setActiveTab={handleTabChange}
-            />
-          )}
-
-          {activeTab === 'workspace' && (
-            <WorkspaceView
-              papers={papers}
-              libraryStats={libraryStats}
-              setActiveTab={handleTabChange}
-              onSeed={handleSeed}
-            />
-          )}
-
-          {activeTab === 'graph' && <GraphView data={graphData} papers={papers} onSeed={handleSeed} isSeeding={isUploading} />}
-
-          {activeTab === 'library' && (
-            <LibraryView
-              onUpload={handleUpload}
-              onAddPaper={handleAddPaper}
-              isUploading={isUploading}
-              uploadStatus={uploadStatus}
-              papers={papers}
-              libraryStats={libraryStats}
-              setActiveTab={handleTabChange}
-              previousTab={previousTab}
-            />
-          )}
-
-          {activeTab === 'analytics' && (
-            <AnalyticsView papers={papers} libraryStats={libraryStats} graphData={graphData} />
-          )}
+          <Routes>
+            <Route path="/" element={<Navigate to="/chat" replace />} />
+            <Route path="/chat" element={
+              <ChatView messages={messages} onSendMessage={handleSendMessage} onAddPaper={handleAddPaper} isLoading={isLoading} papers={papers} setActiveTab={handleTabChange} />
+            } />
+            <Route path="/workspace" element={
+              <WorkspaceView papers={papers} libraryStats={libraryStats} setActiveTab={handleTabChange} onSeed={handleSeed} />
+            } />
+            <Route path="/graph" element={
+              <GraphView data={graphData} papers={papers} onSeed={handleSeed} isSeeding={isUploading} />
+            } />
+            <Route path="/library" element={
+              <LibraryView onUpload={handleUpload} onAddPaper={handleAddPaper} isUploading={isUploading} uploadStatus={uploadStatus} papers={papers} libraryStats={libraryStats} setActiveTab={handleTabChange} previousTab={previousTab} />
+            } />
+            <Route path="/analytics" element={
+              <AnalyticsView papers={papers} libraryStats={libraryStats} graphData={graphData} />
+            } />
+            <Route path="*" element={<Navigate to="/chat" replace />} />
+          </Routes>
         </main>
 
         <Footer />
       </div>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppInner />
+    </BrowserRouter>
   );
 }
 
