@@ -377,10 +377,65 @@ async def get_graph(limit: int = 40):
 
 
 # ─────────────────────────────────────────────────────────────
-#  SOHBET GEÇMİŞİ CRUD (PostgreSQL)
+#  KİMLİK DOĞRULAMA (AUTH)
+# ─────────────────────────────────────────────────────────────
+from fastapi import Depends, HTTPException, status
+from app.auth import get_password_hash, verify_password, create_access_token, get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES
+from app.models import User
+from fastapi.security import OAuth2PasswordRequestForm
+from datetime import timedelta
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+
+@app.post("/register", status_code=201)
+async def register(user: UserCreate):
+    session = _get_session()
+    try:
+        existing_user = session.query(User).filter(User.username == user.username).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Bu kullanıcı adı zaten alınmış.")
+        
+        hashed_password = get_password_hash(user.password)
+        new_user = User(username=user.username, hashed_password=hashed_password)
+        session.add(new_user)
+        session.commit()
+        return {"message": "Kullanıcı başarıyla oluşturuldu"}
+    finally:
+        session.close()
+
+@app.post("/login")
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    session = _get_session()
+    try:
+        user = session.query(User).filter(User.username == form_data.username).first()
+        if not user or not verify_password(form_data.password, user.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Yanlış kullanıcı adı veya şifre",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": user.username}, expires_delta=access_token_expires
+        )
+        return {"access_token": access_token, "token_type": "bearer"}
+    finally:
+        session.close()
+
+@app.get("/me")
+async def read_users_me(current_user: User = Depends(get_current_user)):
+    return {"id": current_user.id, "username": current_user.username}
+
+
+# ─────────────────────────────────────────────────────────────
+#  SOHBET GEÇMİŞİ CRUD (PostgreSQL) - Kullanıcıya Özel
 # ─────────────────────────────────────────────────────────────
 
 from app.models import Conversation, Message as MessageModel
+from fastapi import Depends
 
 class ConversationCreate(BaseModel):
     title: str = ""
@@ -401,11 +456,11 @@ def _get_session():
 
 
 @app.get("/conversations")
-async def list_conversations():
+async def list_conversations(current_user: User = Depends(get_current_user)):
     """Tüm sohbetleri (mesajları ile birlikte) döner."""
     session = _get_session()
     try:
-        convs = session.query(Conversation).order_by(Conversation.updated_at.desc()).all()
+        convs = session.query(Conversation).filter(Conversation.user_id == current_user.id).order_by(Conversation.updated_at.desc()).all()
         return [
             {
                 "id": c.id,
@@ -425,11 +480,11 @@ async def list_conversations():
 
 
 @app.get("/conversations/{conversation_id}")
-async def get_conversation(conversation_id: str):
+async def get_conversation(conversation_id: str, current_user: User = Depends(get_current_user)):
     """Tek bir sohbeti mesajlarıyla döner."""
     session = _get_session()
     try:
-        c = session.query(Conversation).filter(Conversation.id == conversation_id).first()
+        c = session.query(Conversation).filter(Conversation.id == conversation_id, Conversation.user_id == current_user.id).first()
         if not c:
             raise HTTPException(status_code=404, detail="Sohbet bulunamadı.")
         return {
@@ -448,11 +503,11 @@ async def get_conversation(conversation_id: str):
 
 
 @app.post("/conversations", status_code=201)
-async def create_conversation(body: ConversationCreate):
+async def create_conversation(body: ConversationCreate, current_user: User = Depends(get_current_user)):
     """Yeni boş bir sohbet oluşturur."""
     session = _get_session()
     try:
-        conv = Conversation(title=body.title)
+        conv = Conversation(title=body.title, user_id=current_user.id)
         session.add(conv)
         session.commit()
         session.refresh(conv)
@@ -462,11 +517,11 @@ async def create_conversation(body: ConversationCreate):
 
 
 @app.patch("/conversations/{conversation_id}")
-async def rename_conversation(conversation_id: str, body: ConversationRename):
+async def rename_conversation(conversation_id: str, body: ConversationRename, current_user: User = Depends(get_current_user)):
     """Sohbet başlığını günceller."""
     session = _get_session()
     try:
-        conv = session.query(Conversation).filter(Conversation.id == conversation_id).first()
+        conv = session.query(Conversation).filter(Conversation.id == conversation_id, Conversation.user_id == current_user.id).first()
         if not conv:
             raise HTTPException(status_code=404, detail="Sohbet bulunamadı.")
         conv.title = body.title
@@ -477,11 +532,11 @@ async def rename_conversation(conversation_id: str, body: ConversationRename):
 
 
 @app.delete("/conversations/{conversation_id}")
-async def delete_conversation(conversation_id: str):
+async def delete_conversation(conversation_id: str, current_user: User = Depends(get_current_user)):
     """Sohbeti ve tüm mesajlarını siler."""
     session = _get_session()
     try:
-        conv = session.query(Conversation).filter(Conversation.id == conversation_id).first()
+        conv = session.query(Conversation).filter(Conversation.id == conversation_id, Conversation.user_id == current_user.id).first()
         if not conv:
             raise HTTPException(status_code=404, detail="Sohbet bulunamadı.")
         session.delete(conv)
@@ -492,16 +547,15 @@ async def delete_conversation(conversation_id: str):
 
 
 @app.post("/conversations/{conversation_id}/messages", status_code=201)
-async def add_message(conversation_id: str, body: MessageCreate):
+async def add_message(conversation_id: str, body: MessageCreate, current_user: User = Depends(get_current_user)):
     """Bir sohbete yeni mesaj ekler ve sohbetin updated_at'ini günceller."""
     session = _get_session()
     try:
-        conv = session.query(Conversation).filter(Conversation.id == conversation_id).first()
+        conv = session.query(Conversation).filter(Conversation.id == conversation_id, Conversation.user_id == current_user.id).first()
         if not conv:
             raise HTTPException(status_code=404, detail="Sohbet bulunamadı.")
         msg = MessageModel(conversation_id=conversation_id, role=body.role, content=body.content)
         session.add(msg)
-        # updated_at'i elle güncelle
         from datetime import datetime, timezone
         conv.updated_at = datetime.now(timezone.utc)
         session.commit()

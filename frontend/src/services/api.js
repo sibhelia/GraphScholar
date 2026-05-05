@@ -9,6 +9,28 @@ const api = axios.create({
     },
 });
 
+// Interceptor to add JWT token to requests
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('graphscholar_token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
+export const authApi = {
+    login: (username, password) => {
+        const formData = new URLSearchParams();
+        formData.append('username', username);
+        formData.append('password', password);
+        return api.post('/login', formData, {
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        });
+    },
+    register: (username, password) => api.post('/register', { username, password }),
+    getMe: () => api.get('/me'),
+};
+
 export const searchApi = {
     analyzePdf: (file) => {
         const formData = new FormData();

@@ -9,6 +9,8 @@ import LibraryView from './components/LibraryView';
 import Topbar from './components/Topbar';
 import WorkspaceView from './components/WorkspaceView';
 import { searchApi, conversationApi } from './services/api';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import AuthView from './components/AuthView';
 
 
 
@@ -47,8 +49,17 @@ function AppInner() {
   );
   const messages = currentConversation?.messages || [];
 
+  const { user } = useAuth();
+  const [isInitializing, setIsInitializing] = useState(true);
+
   // Sohbetleri veritabanından yükle
   useEffect(() => {
+    if (!user) {
+      setIsInitializing(false);
+      return;
+    }
+    
+    setIsInitializing(true);
     conversationApi.list().then((res) => {
       const data = res.data;
       if (data.length === 0) {
@@ -60,8 +71,12 @@ function AppInner() {
         setConversations(data);
         setCurrentConversationId(data[0].id);
       }
-    }).catch((err) => console.error('Sohbetler yüklenemedi:', err));
-  }, []);
+    }).catch((err) => console.error('Sohbetler yüklenemedi:', err))
+      .finally(() => setIsInitializing(false));
+  }, [user]);
+
+  if (isInitializing) return null;
+  if (!user) return <AuthView />;
 
   const handleTabChange = (tab) => {
     setPreviousTab(activeTab);
@@ -291,6 +306,7 @@ function AppInner() {
   return (
     <div className="app-shell app-shell-with-sidebar">
       <ConversationSidebar
+        user={user}
         conversations={conversations}
         currentConversationId={currentConversation?.id}
         onSelectConversation={selectConversation}
@@ -357,7 +373,9 @@ function AppInner() {
 function App() {
   return (
     <BrowserRouter>
-      <AppInner />
+      <AuthProvider>
+        <AppInner />
+      </AuthProvider>
     </BrowserRouter>
   );
 }

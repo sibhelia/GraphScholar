@@ -16,6 +16,7 @@ function buildPreview(messages = []) {
 }
 
 const ConversationSidebar = ({
+    user,
     conversations = [],
     currentConversationId,
     onSelectConversation,
@@ -101,6 +102,27 @@ const ConversationSidebar = ({
                         </div>
                     );
                 })}
+            </div>
+
+            <div className="conversation-sidebar-bottom" style={{ padding: '16px', borderTop: '1px solid var(--border-color)', marginTop: 'auto' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--green)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                            {user?.username?.[0]?.toUpperCase() || 'U'}
+                        </div>
+                        <span style={{ fontSize: '0.875rem', fontWeight: '500', color: 'var(--text-primary)' }}>{user?.username || 'Kullanıcı'}</span>
+                    </div>
+                    <button 
+                        onClick={() => {
+                            localStorage.removeItem('graphscholar_token');
+                            window.location.reload();
+                        }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+                        title="Çıkış Yap"
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    </button>
+                </div>
             </div>
         </aside>
     );
