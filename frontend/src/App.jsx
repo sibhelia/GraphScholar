@@ -11,6 +11,7 @@ import WorkspaceView from './components/WorkspaceView';
 import { searchApi, conversationApi } from './services/api';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import AuthView from './components/AuthView';
+import { Loader2 } from 'lucide-react';
 
 
 
@@ -49,33 +50,76 @@ function AppInner() {
   );
   const messages = currentConversation?.messages || [];
 
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [isInitializing, setIsInitializing] = useState(true);
 
   // Sohbetleri veritabanından yükle
   useEffect(() => {
-    if (!user) {
-      setIsInitializing(false);
-      return;
-    }
-    
-    setIsInitializing(true);
-    conversationApi.list().then((res) => {
-      const data = res.data;
-      if (data.length === 0) {
-        conversationApi.create('').then((r) => {
+    const initConversations = async () => {
+      if (!user) {
+        setIsInitializing(false);
+        return;
+      }
+      
+      try {
+        setIsInitializing(true);
+        const res = await conversationApi.list();
+        const data = res.data;
+        
+        if (data.length === 0) {
+          const r = await conversationApi.create('');
           setConversations([r.data]);
           setCurrentConversationId(r.data.id);
-        });
-      } else {
-        setConversations(data);
-        setCurrentConversationId(data[0].id);
+        } else {
+          setConversations(data);
+          setCurrentConversationId(data[0].id);
+        }
+      } catch (err) {
+        console.error('Sohbetler yüklenemedi:', err);
+      } finally {
+        setIsInitializing(false);
       }
-    }).catch((err) => console.error('Sohbetler yüklenemedi:', err))
-      .finally(() => setIsInitializing(false));
+    };
+
+    initConversations();
   }, [user]);
 
-  if (isInitializing) return null;
+  const loadWorkspaceData = async () => {
+    try {
+      const [papersResponse, overviewResponse, graphResponse] = await Promise.all([
+        searchApi.getPapers(),
+        searchApi.getLibraryOverview(),
+        searchApi.getGraph(),
+      ]);
+      setPapers(papersResponse.data.papers || []);
+      setLibraryStats(overviewResponse.data.stats || null);
+      setGraphData(graphResponse.data || { nodes: [], edges: [] });
+    } catch (error) {
+      console.error('Veri yükleme hatası:', error);
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void loadWorkspaceData();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isInitializing) {
+    return (
+      <div className="auth-page" style={{ justifyContent: 'center', alignItems: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <img src="/graphscholar-logo.png" alt="Logo" style={{ width: '120px', marginBottom: '20px' }} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', color: 'var(--green)' }}>
+            <Loader2 className="spin" size={24} />
+            <span style={{ fontWeight: '500' }}>Sistem Hazırlanıyor...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!user) return <AuthView />;
 
   const handleTabChange = (tab) => {
@@ -138,28 +182,6 @@ function AppInner() {
       console.error('Sohbet detayı alınamadı:', error);
     }
   };
-
-  const loadWorkspaceData = async () => {
-    try {
-      const [papersResponse, overviewResponse, graphResponse] = await Promise.all([
-        searchApi.getPapers(),
-        searchApi.getLibraryOverview(),
-        searchApi.getGraph(),
-      ]);
-      setPapers(papersResponse.data.papers || []);
-      setLibraryStats(overviewResponse.data.stats || null);
-      setGraphData(graphResponse.data || { nodes: [], edges: [] });
-    } catch (error) {
-      console.error('Veri yükleme hatası:', error);
-    }
-  };
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      void loadWorkspaceData();
-    }, 0);
-    return () => clearTimeout(timer);
-  }, []);
 
   const handleUpload = async (file) => {
     if (!file) return;
@@ -321,6 +343,8 @@ function AppInner() {
           libraryStats={libraryStats}
           uploadStatus={uploadStatus}
           isUploading={isUploading}
+          user={user}
+          onLogout={logout}
         />
 
         <main className="workspace-main">

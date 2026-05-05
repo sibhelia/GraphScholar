@@ -9,6 +9,7 @@ import {
     Share2,
     TrendingUp,
     User,
+    LogOut,
 } from 'lucide-react';
 
 const TAB_TITLES = {
@@ -27,7 +28,7 @@ const NAV_ITEMS = [
     { id: 'analytics', icon: TrendingUp, label: 'Analitik' },
 ];
 
-const Topbar = ({ activeTab, setActiveTab, libraryStats, isUploading = false, uploadStatus = '' }) => {
+const Topbar = ({ activeTab, setActiveTab, libraryStats, isUploading = false, uploadStatus = '', user = null, onLogout = () => {} }) => {
     return (
         <header className="topbar-shell topbar-shell-nav enterprise-topbar">
             <div className="topbar-primary-row enterprise-topbar-row">
@@ -69,14 +70,23 @@ const Topbar = ({ activeTab, setActiveTab, libraryStats, isUploading = false, up
                     >
                         <Bell size={16} />
                     </button>
-                    <div className="topbar-profile enterprise-profile">
-                        <div className="topbar-profile-copy">
-                            <strong>Araştırmacı</strong>
+                    
+                    <div className="topbar-profile enterprise-profile" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div className="topbar-profile-copy" style={{ textAlign: 'right' }}>
+                            <strong>{user?.username || 'Araştırmacı'}</strong>
                             <span>Kişisel alan</span>
                         </div>
-                        <div className="topbar-avatar">
+                        <div className="topbar-avatar" style={{ background: 'var(--green-soft)', color: 'var(--green)' }}>
                             <User size={15} />
                         </div>
+                        <button 
+                            className="topbar-icon-btn" 
+                            onClick={onLogout}
+                            title="Çıkış Yap"
+                            style={{ marginLeft: '4px', color: '#ef4444', background: 'rgba(239, 68, 68, 0.1)' }}
+                        >
+                            <LogOut size={15} />
+                        </button>
                     </div>
                 </div>
             </div>

@@ -177,6 +177,7 @@ a {
   overflow-y: auto;
   min-height: 0;
   padding-right: 2px;
+  flex: 1;
 }
 
 .conversation-item {
@@ -2024,3 +2025,143 @@ p {
 .auth-submit-btn-modern:hover { background: var(--green2); }
 .auth-submit-btn-modern:disabled { opacity: 0.7; cursor: not-allowed; }
 .auth-error-banner { display: flex; align-items: center; gap: 10px; background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; font-size: 0.9rem; font-weight: 500; border: 1px solid rgba(239, 68, 68, 0.2); }
+.password-toggle-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+}
+.password-toggle-btn:hover {
+    color: var(--green);
+}
+
+.password-hint {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 4px;
+    margin-left: 4px;
+}
+
+.auth-form-options {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    font-size: 0.85rem;
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #475569;
+    cursor: pointer;
+}
+
+.remember-me input[type="checkbox"] {
+    accent-color: var(--green);
+    cursor: pointer;
+}
+
+.forgot-password {
+    color: var(--green);
+    text-decoration: none;
+    font-weight: 500;
+}
+.forgot-password:hover {
+    text-decoration: underline;
+}
+.password-toggle-btn svg {
+    position: static !important;
+    left: auto !important;
+}
+
+.conversation-sidebar-bottom {
+    padding: 16px;
+    border-top: 1px solid var(--border);
+    margin-top: auto;
+    background: var(--panel);
+}
+
+.sidebar-user-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.sidebar-user-card:hover {
+    border-color: var(--green);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    transform: translateY(-1px);
+}
+
+.user-card-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--green);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+}
+
+.user-card-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    min-width: 0; /* Ensures text truncation works inside flex */
+}
+
+.user-card-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.user-card-role {
+    font-size: 0.7rem;
+    color: var(--text3);
+    margin-top: 2px;
+}
+
+.user-card-logout {
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.user-card-logout:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}

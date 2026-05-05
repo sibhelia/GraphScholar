@@ -1,19 +1,27 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Mail, KeyRound, Loader2, Network, User } from 'lucide-react';
+import { Mail, KeyRound, Loader2, User, Eye, EyeOff } from 'lucide-react';
 
 const AuthView = () => {
     const { login, register } = useAuth();
     const [activeTab, setActiveTab] = useState('login'); // 'login' | 'register'
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [rememberMe, setRememberMe] = useState(true);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
         if (!username || !password) {
             setError('Kullanıcı adı ve şifre gereklidir.');
+            return;
+        }
+
+        if (activeTab === 'register' && password.length < 6) {
+            setError('Şifreniz en az 6 karakter uzunluğunda olmalıdır.');
             return;
         }
 
@@ -23,11 +31,13 @@ const AuthView = () => {
         try {
             if (activeTab === 'login') {
                 await login(username, password);
+                // Remember me mantığı lokalde JWT'nin ömrüyle ayarlanabilir
+                // Şu an standart olarak JWT kullanılıyor.
             } else {
                 await register(username, password);
             }
         } catch (err) {
-            setError(err.response?.data?.detail || 'Bir hata oluştu. Lütfen tekrar deneyin.');
+            setError(err.response?.data?.detail || 'Giriş bilgileri hatalı veya sunucuya ulaşılamıyor.');
         } finally {
             setLoading(false);
         }
@@ -71,12 +81,14 @@ const AuthView = () => {
 
                     <div className="auth-tabs">
                         <button 
+                            type="button"
                             className={`auth-tab ${activeTab === 'login' ? 'active' : ''}`}
                             onClick={() => { setActiveTab('login'); setError(''); }}
                         >
                             Giriş Yap
                         </button>
                         <button 
+                            type="button"
                             className={`auth-tab ${activeTab === 'register' ? 'active' : ''}`}
                             onClick={() => { setActiveTab('register'); setError(''); }}
                         >
@@ -89,7 +101,7 @@ const AuthView = () => {
                         <p className="auth-subtitle">
                             {activeTab === 'login' 
                                 ? 'Araştırmalarınıza kaldığınız yerden devam edin.' 
-                                : 'Ücretsiz bir hesap oluşturarak platformu keşfetmeye başlayın.'}
+                                : 'Kurumsal hesabınızı oluşturarak platformu keşfetmeye başlayın.'}
                         </p>
 
                         <form onSubmit={handleSubmit} className="auth-form-modern">
@@ -109,7 +121,7 @@ const AuthView = () => {
                                         required
                                         value={username}
                                         onChange={(e) => setUsername(e.target.value)}
-                                        placeholder="Araştırmacı adınız"
+                                        placeholder="Araştırmacı adınız veya kurum siciliniz"
                                     />
                                 </div>
                             </div>
@@ -119,17 +131,41 @@ const AuthView = () => {
                                 <div className="input-wrapper-modern">
                                     <KeyRound size={18} />
                                     <input
-                                        type="password"
+                                        type={showPassword ? "text" : "password"}
                                         required
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         placeholder="••••••••"
                                     />
+                                    <button 
+                                        type="button" 
+                                        className="password-toggle-btn"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                    >
+                                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                    </button>
                                 </div>
+                                {activeTab === 'register' && (
+                                    <div className="password-hint">Şifreniz en az 6 karakter olmalıdır.</div>
+                                )}
                             </div>
 
+                            {activeTab === 'login' && (
+                                <div className="auth-form-options">
+                                    <label className="remember-me">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={rememberMe}
+                                            onChange={(e) => setRememberMe(e.target.checked)}
+                                        />
+                                        <span>Beni Hatırla</span>
+                                    </label>
+                                    <a href="#" className="forgot-password" onClick={(e) => e.preventDefault()}>Şifremi Unuttum?</a>
+                                </div>
+                            )}
+
                             <button type="submit" className="auth-submit-btn-modern" disabled={loading}>
-                                {loading ? <Loader2 className="spin" size={20} /> : (activeTab === 'login' ? 'Giriş Yap' : 'Kayıt Ol')}
+                                {loading ? <Loader2 className="spin" size={20} /> : (activeTab === 'login' ? 'Sisteme Giriş Yap' : 'Kaydı Tamamla')}
                             </button>
                         </form>
                     </div>
