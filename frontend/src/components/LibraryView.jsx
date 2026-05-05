@@ -6,10 +6,8 @@ import {
     Loader2,
     Quote,
     Share2,
-    Sparkles,
     ArrowLeft,
     Upload,
-    UserCheck,
     ChevronLeft,
     ChevronRight,
 } from 'lucide-react';

@@ -12,9 +12,9 @@ class LLMService:
     """Google GenAI SDK kullanarak metin analizi yapan servis."""
     
     def __init__(self):
-        api_key = os.getenv("GOOGLE_API_KEY")
+        api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
         if not api_key:
-            print("UYARI: GOOGLE_API_KEY bulunamadi!")
+            print("UYARI: GOOGLE_API_KEY veya GEMINI_API_KEY bulunamadi!")
             self.client = None
             return
         

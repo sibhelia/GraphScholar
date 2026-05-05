@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { AlertTriangle, BookOpen, Bot, BotMessageSquare, Compass, Filter, Globe, Loader2, Lock, Send, User, Database, Network, FileText, Zap, Cpu } from 'lucide-react';
+import { AlertTriangle, BookOpen, Bot, BotMessageSquare, Compass, Filter, Globe, Loader2, Lock, Send, User, Database, FileText } from 'lucide-react';
 import MarkdownIt from 'markdown-it';
+import { searchApi } from '../services/api';
 
 const md = new MarkdownIt();
 
@@ -12,14 +13,13 @@ const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [],
     const [stats, setStats] = useState({ papers: papers.length, chunk_count: 0, nodes: 0, edges: 0 });
 
     useEffect(() => {
-        fetch('http://localhost:8080/library/overview')
-            .then(res => res.json())
-            .then(data => {
-                if (data.stats) {
-                    setStats(prev => ({ ...prev, ...data.stats }));
+        searchApi.getLibraryOverview()
+            .then((response) => {
+                if (response.data?.stats) {
+                    setStats((prev) => ({ ...prev, ...response.data.stats }));
                 }
             })
-            .catch(err => console.error("Stats API error:", err));
+            .catch((err) => console.error('Stats API error:', err));
     }, [papers]);
 
     useEffect(() => {
@@ -199,29 +199,32 @@ const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [],
                             className="btn-primary btn-send" 
                             onClick={handleSend} 
                             disabled={isLoading || !input.trim()} 
-                            style={{ background: '#10b981', boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)', borderRadius: '12px', width: '48px', height: '48px' }}
+                            style={{ background: '#10b981', boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)', borderRadius: '14px', width: '52px', height: '52px', minWidth: '52px', minHeight: '52px' }}
                         >
-                            <Send size={22} />
+                            <Send size={26} strokeWidth={2.4} />
                         </button>
                     </div>
                 </div>
 
-                <aside className="chat-context-panel" style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '16px' }}>
-                    <div className="surface-card" style={{ background: '#ffffff', borderColor: '#e2e8f0', display: 'flex', flexDirection: 'column', padding: '20px', gap: '12px', flex: 1 }}>
-                        <div className="eyebrow" style={{ color: '#64748b', fontSize: '0.7rem' }}>KÜTÜPHANE DURUMU</div>
-                        <h3 style={{ color: '#0f172a', fontSize: '1.1rem', margin: 0 }}>
-                            Akademik Kütüphaneniz
-                        </h3>
+                <aside className="chat-context-panel" style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '8px' }}>
+                    <div className="surface-card chat-side-card" style={{ background: '#ffffff', borderColor: '#e2e8f0', display: 'flex', flexDirection: 'column', padding: '14px 16px', gap: '10px', flex: '1 1 0', minHeight: 0 }}>
+                        <div className="eyebrow" style={{ color: '#64748b', fontSize: '0.62rem', marginBottom: '2px' }}>KÜTÜPHANE DURUMU</div>
                         
-                        <div style={{ fontSize: '0.85rem', color: '#475569', lineHeight: '1.5', flex: 1 }}>
-                            <p style={{ marginBottom: '8px' }}>
+                        <div style={{ fontSize: '0.76rem', color: '#475569', lineHeight: '1.42', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                            <h3 style={{ color: '#0f172a', fontSize: '0.95rem', margin: '0 0 10px', lineHeight: 1.25 }}>
+                                Akademik Kütüphaneniz
+                            </h3>
+                            <p style={{ marginBottom: '6px' }}>
                                 Kütüphanenizde <strong>{stats.paper_count || papers.length} makale</strong>, <strong>{stats.chunk_count || 0}</strong> parça halinde işlendi.
                             </p>
-                            <p style={{ marginBottom: '8px' }}>
+                            <p style={{ marginBottom: '6px' }}>
                                 <strong>{stats.concept_count || 0}</strong> kavram ve <strong>{stats.citation_edges || 0}</strong> ilişki haritalandı.
                             </p>
-                            <p>
+                            <p className="library-status-copy library-status-copy-compact">
                                 Sistem sorularınıza kanıtlı yanıtlar üretmeye hazır.
+                            </p>
+                            <p className="library-status-copy library-status-copy-expanded">
+                                Sistem, kütüphanenizdeki makaleleri kavramsal bağlantılar, yazar ilişkileri ve işlenmiş metin parçaları üzerinden birlikte değerlendirerek daha güçlü, daha tutarlı ve kaynağa dayalı akademik yanıtlar üretmeye hazır.
                             </p>
                         </div>
 
@@ -230,17 +233,17 @@ const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [],
                                 className="btn-secondary" 
                                 style={{ 
                                     width: '100%', 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    justifyContent: 'center', 
-                                    gap: '8px', 
-                                    fontSize: '0.85rem',
-                                    padding: '12px',
-                                    borderRadius: '10px',
-                                    background: 'rgba(16, 185, 129, 0.1)',
-                                    border: '1px solid rgba(16, 185, 129, 0.2)',
-                                    color: '#059669',
-                                    fontWeight: '600',
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center', 
+                                gap: '6px', 
+                                fontSize: '0.76rem',
+                                padding: '9px 10px',
+                                borderRadius: '9px',
+                                background: 'rgba(16, 185, 129, 0.1)',
+                                border: '1px solid rgba(16, 185, 129, 0.2)',
+                                color: '#059669',
+                                fontWeight: '600',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s'
                                 }}
@@ -248,25 +251,25 @@ const ChatView = ({ onSendMessage, onAddPaper, messages, isLoading, papers = [],
                                 onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(16, 185, 129, 0.2)'; }}
                                 onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)'; }}
                             >
-                                <Database size={16} /> Kütüphaneyi Yönet
+                                <Database size={14} /> Kütüphaneyi Yönet
                             </button>
                         </div>
                     </div>
                     
-                    <div className="surface-card" style={{ background: '#ffffff', borderColor: '#e2e8f0', display: 'flex', flexDirection: 'column', padding: '20px', gap: '12px', flex: 1 }}>
-                        <div className="eyebrow" style={{ color: '#64748b', fontSize: '0.7rem' }}>SİSTEM YETENEKLERİ</div>
-                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '0.85rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: '14px', flex: 1, justifyContent: 'center' }}>
-                            <li style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                                <Compass size={20} style={{ color: '#10b981', marginTop: '2px', flexShrink: 0 }} />
-                                <span>Vektör ve Grafik üzerinden hibrit arama yapar.</span>
+                    <div className="surface-card chat-side-card" style={{ background: '#ffffff', borderColor: '#e2e8f0', display: 'flex', flexDirection: 'column', padding: '14px 16px', gap: '10px', flex: '1 1 0', minHeight: 0 }}>
+                        <div className="eyebrow" style={{ color: '#64748b', fontSize: '0.62rem', marginBottom: '2px' }}>SİSTEM YETENEKLERİ</div>
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '0.76rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: '10px', flex: 1, justifyContent: 'center' }}>
+                            <li style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                                <Compass size={17} style={{ color: '#10b981', marginTop: '2px', flexShrink: 0 }} />
+                                <span>Vektör veritabanındaki anlamsal eşleşmeleri ve bilgi grafındaki ilişkileri birlikte tarayarak daha bağlamsal sonuçlar üretir.</span>
                             </li>
-                            <li style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                                <FileText size={20} style={{ color: '#3b82f6', marginTop: '2px', flexShrink: 0 }} />
-                                <span>Cevapları orijinal kaynak metinlere dayandırır.</span>
+                            <li style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                                <FileText size={17} style={{ color: '#3b82f6', marginTop: '2px', flexShrink: 0 }} />
+                                <span>Verdiği yanıtları makalelerden çıkan pasajlar, özetler ve eşleşen kaynaklarla destekleyerek daha denetlenebilir hale getirir.</span>
                             </li>
-                            <li style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                                <AlertTriangle size={20} style={{ color: '#f59e0b', marginTop: '2px', flexShrink: 0 }} />
-                                <span>Makaleler arası metodolojik çelişkileri bulur.</span>
+                            <li style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                                <AlertTriangle size={17} style={{ color: '#f59e0b', marginTop: '2px', flexShrink: 0 }} />
+                                <span>Farklı makalelerdeki metodolojik ayrışmaları, çelişen bulguları ve yorum farklarını fark edip kullanıcıya karşılaştırmalı bakış sunar.</span>
                             </li>
                         </ul>
                     </div>

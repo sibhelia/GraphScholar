@@ -130,8 +130,8 @@ function AppInner() {
     setUploadStatus("Demo veriler ekleniyor...");
     setIsUploading(true);
     try {
-      const response = await fetch('http://localhost:8080/seed-demo', { method: 'POST' });
-      const data = await response.json();
+      const response = await searchApi.seedDemo();
+      const data = response.data;
       if (data.status === 'success') {
         await loadWorkspaceData();
         setUploadStatus(data.message);

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { DataSet, Network } from 'vis-network/standalone';
 import { ExternalLink, Filter, GitBranch, Share2, Sparkles, X, Layers, Maximize2, ZoomIn, Info } from 'lucide-react';
+import { searchApi } from '../services/api';
 
 const GraphView = ({ data, papers = [], onSeed, isSeeding }) => {
     const containerRef = useRef(null);
@@ -95,23 +96,16 @@ const GraphView = ({ data, papers = [], onSeed, isSeeding }) => {
             const nodeData = filteredNodes.find((node) => node.id === nodeId);
 
             if (isPathfinderActive) {
-                const newPathNodes = prev => 
-                    prev.includes(nodeId) ? prev.filter((id) => id !== nodeId) : [...prev, nodeId].slice(-2);
-                
                 setPathfinderNodes((prev) => {
                     const next = prev.includes(nodeId) ? prev.filter((id) => id !== nodeId) : [...prev, nodeId].slice(-2);
                     
                     if (next.length === 2) {
-                        // Backend'den yolu sorgula
-                        fetch(`http://localhost:8080/graph/path?start=${next[0]}&end=${next[1]}`)
-                            .then(res => res.json())
-                            .then(pathData => {
+                        searchApi.getGraphPath(next[0], next[1])
+                            .then((response) => {
+                                const pathData = response.data || {};
                                 if (pathData.nodes && pathData.nodes.length > 0) {
-                                    const pathIds = new Set(pathData.nodes.map(n => n.id));
-                                    const pathEdgeIds = new Set(pathData.edges.map(e => e.id));
-                                    
                                     // Grafa vurgu ekle
-                                    visData.nodes.update(pathData.nodes.map(n => ({
+                                    visData.nodes.update(pathData.nodes.map((n) => ({
                                         id: n.id,
                                         borderWidth: 4,
                                         shadow: { enabled: true, color: '#8b5cf6', size: 15 }
@@ -129,7 +123,7 @@ const GraphView = ({ data, papers = [], onSeed, isSeeding }) => {
         });
 
         return () => network.destroy();
-    }, [filteredEdges, filteredNodes, isPathfinderActive]);
+    }, [filteredEdges, filteredNodes, isPathfinderActive, pathfinderNodes]);
 
     const selectedPaper = papers.find(
         (paper) => paper.id === selectedNode?.id || paper.title === selectedNode?.label,
@@ -159,7 +153,15 @@ const GraphView = ({ data, papers = [], onSeed, isSeeding }) => {
                         </select>
                     </div>
                     <button
-                        onClick={() => setIsPathfinderActive(!isPathfinderActive)}
+                        onClick={() => {
+                            setIsPathfinderActive((prev) => {
+                                const next = !prev;
+                                if (!next) {
+                                    setPathfinderNodes([]);
+                                }
+                                return next;
+                            });
+                        }}
                         style={{ 
                             display: 'flex', alignItems: 'center', gap: '8px',
                             padding: '9px 16px', borderRadius: '10px', fontSize: '0.83rem', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s',

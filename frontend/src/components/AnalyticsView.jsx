@@ -1,4 +1,4 @@
-import { ArrowUpRight, Radar, Target, TrendingUp, Users, Share2, Award, Activity, BarChart3, ChevronRight, FileText, BookOpen, Quote } from 'lucide-react';
+import { ArrowUpRight, Radar, Target, TrendingUp, Users, Share2, Award, BarChart3, FileText } from 'lucide-react';
 
 const AnalyticsView = ({ papers = [], libraryStats, graphData }) => {
     const stats = libraryStats || {};

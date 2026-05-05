@@ -195,6 +195,37 @@ class GraphService:
                 })
             return papers
 
+    def get_paper_summaries(self, limit: int = 10) -> list[dict]:
+        """Arama fallback'i icin en anlamli makale ozetlerini dondurur."""
+        with db.neo4j_driver.session() as session:
+            records = session.run("""
+                MATCH (p:Paper)
+                OPTIONAL MATCH (a:Author)-[:WROTE]->(p)
+                RETURN
+                    p.arxiv_id AS id,
+                    p.title AS title,
+                    p.year AS year,
+                    p.abstract AS abstract,
+                    collect(DISTINCT a.name) AS authors
+                ORDER BY
+                    CASE WHEN p.abstract IS NULL OR trim(p.abstract) = "" THEN 1 ELSE 0 END ASC,
+                    coalesce(p.year, 0) DESC,
+                    p.title ASC
+                LIMIT $limit
+            """, limit=limit)
+
+            summaries = []
+            for record in records:
+                abstract = (record["abstract"] or "").strip()
+                summaries.append({
+                    "id": record["id"],
+                    "title": record["title"] or "Bilinmeyen Makale",
+                    "year": record["year"],
+                    "abstract": abstract,
+                    "authors": [a for a in record["authors"] if a],
+                })
+            return summaries
+
     def get_graph_snapshot(self, limit: int = 40) -> dict:
         """Arayuz icin hafif bir grafik ozeti dondurur."""
         with db.neo4j_driver.session() as session:

@@ -1,4 +1,4 @@
-import { ArrowUpRight, BookOpen, Clock3, Files, Quote, Database, Share2, Network, FileText, Compass, ChevronRight, X, ExternalLink } from 'lucide-react';
+import { Quote, Database, Share2, Network, FileText, ChevronRight, X, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 
 const WorkspaceView = ({ papers = [], libraryStats, setActiveTab }) => {
@@ -264,7 +264,7 @@ const WorkspaceView = ({ papers = [], libraryStats, setActiveTab }) => {
                                 <Share2 size={20} />
                             </div>
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                                <strong style={{ fontSize: '1.8rem', color: '#7c3aed', fontWeight: '800' }}>{libraryStats?.citation_count ?? 124}</strong>
+                                <strong style={{ fontSize: '1.8rem', color: '#7c3aed', fontWeight: '800' }}>{libraryStats?.citation_edges ?? 0}</strong>
                                 <span style={{ fontSize: '0.85rem', color: '#5b21b6', fontWeight: '700', letterSpacing: '0.05em' }}>TOPLAM ATIF</span>
                             </div>
                         </div>
