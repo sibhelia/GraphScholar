@@ -1,13 +1,22 @@
-import { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import Topbar from './components/Topbar';
+import { useEffect, useMemo, useState } from 'react';
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import AnalyticsView from './components/AnalyticsView';
+import ChatView from './components/ChatView';
+import ConversationSidebar from './components/ConversationSidebar';
 import Footer from './components/Footer';
 import GraphView from './components/GraphView';
-import ChatView from './components/ChatView';
 import LibraryView from './components/LibraryView';
-import AnalyticsView from './components/AnalyticsView';
+import Topbar from './components/Topbar';
 import WorkspaceView from './components/WorkspaceView';
-import { searchApi } from './services/api';
+import { searchApi, conversationApi } from './services/api';
+
+
+
+function buildConversationTitle(text) {
+  const trimmed = text.trim();
+  if (!trimmed) return 'Yeni sohbet';
+  return trimmed.length > 42 ? `${trimmed.slice(0, 42)}...` : trimmed;
+}
 
 function AppInner() {
   const navigate = useNavigate();
@@ -23,18 +32,97 @@ function AppInner() {
   const activeTab = pathToTab[location.pathname] || 'chat';
   const [previousTab, setPreviousTab] = useState('chat');
 
-  const handleTabChange = (tab) => {
-    setPreviousTab(activeTab);
-    navigate('/' + tab);
-  };
-
-  const [messages, setMessages] = useState([]);
+  const [conversations, setConversations] = useState([]);
+  const [currentConversationId, setCurrentConversationId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
   const [graphData, setGraphData] = useState({ nodes: [], edges: [] });
   const [papers, setPapers] = useState([]);
   const [libraryStats, setLibraryStats] = useState(null);
+
+  const currentConversation = useMemo(
+    () => conversations.find((conversation) => conversation.id === currentConversationId) || conversations[0],
+    [conversations, currentConversationId],
+  );
+  const messages = currentConversation?.messages || [];
+
+  // Sohbetleri veritabanından yükle
+  useEffect(() => {
+    conversationApi.list().then((res) => {
+      const data = res.data;
+      if (data.length === 0) {
+        conversationApi.create('').then((r) => {
+          setConversations([r.data]);
+          setCurrentConversationId(r.data.id);
+        });
+      } else {
+        setConversations(data);
+        setCurrentConversationId(data[0].id);
+      }
+    }).catch((err) => console.error('Sohbetler yüklenemedi:', err));
+  }, []);
+
+  const handleTabChange = (tab) => {
+    setPreviousTab(activeTab);
+    navigate(`/${tab}`);
+  };
+
+  const updateCurrentConversation = (updater) => {
+    setConversations((prev) =>
+      prev.map((conversation) =>
+        conversation.id === currentConversationId ? updater(conversation) : conversation,
+      ),
+    );
+  };
+
+  const createNewConversation = async () => {
+    try {
+      const res = await conversationApi.create('');
+      setConversations((prev) => [res.data, ...prev]);
+      setCurrentConversationId(res.data.id);
+      navigate('/chat');
+    } catch (err) {
+      console.error('Yeni sohbet oluşturulamadı:', err);
+    }
+  };
+
+  const deleteConversation = async (conversationId) => {
+    const confirmed = window.confirm('Bu sohbeti silmek istediğinize emin misiniz?');
+    if (!confirmed) return;
+    try {
+      await conversationApi.delete(conversationId);
+      const remaining = conversations.filter((c) => c.id !== conversationId);
+      if (remaining.length === 0) {
+        const res = await conversationApi.create('');
+        setConversations([res.data]);
+        setCurrentConversationId(res.data.id);
+      } else {
+        setConversations(remaining);
+        if (currentConversationId === conversationId) {
+          setCurrentConversationId(remaining[0].id);
+        }
+      }
+      navigate('/chat');
+    } catch (err) {
+      console.error('Sohbet silinemedi:', err);
+    }
+  };
+
+  const selectConversation = async (conversationId) => {
+    setCurrentConversationId(conversationId);
+    navigate('/chat');
+    
+    // Arka planda tam detayını çekip state'i güncelle
+    try {
+      const res = await conversationApi.get(conversationId);
+      setConversations((prev) => 
+        prev.map((c) => (c.id === conversationId ? res.data : c))
+      );
+    } catch (error) {
+      console.error('Sohbet detayı alınamadı:', error);
+    }
+  };
 
   const loadWorkspaceData = async () => {
     try {
@@ -52,7 +140,9 @@ function AppInner() {
   };
 
   useEffect(() => {
-    const timer = setTimeout(() => { void loadWorkspaceData(); }, 0);
+    const timer = setTimeout(() => {
+      void loadWorkspaceData();
+    }, 0);
     return () => clearTimeout(timer);
   }, []);
 
@@ -76,35 +166,86 @@ function AppInner() {
 
   const handleSendMessage = async (text, options = {}) => {
     const { source = 'private' } = options;
-    setMessages((prev) => [...prev, { role: 'user', text }]);
+    const convId = currentConversationId;
+    const userMessage = { role: 'user', text };
+    
+    // Eğer başlık boşsa veya "Yeni Araştırma" ise ilk mesajın bir kısmını başlık yap
+    const isFirst = !currentConversation?.title || currentConversation?.title === 'Yeni Araştırma' || (currentConversation?.messages || []).length === 0;
+    const newTitle = isFirst ? buildConversationTitle(text) : null;
+
+    // UI'yi hemen güncelle (optimistic)
+    updateCurrentConversation((conversation) => ({
+      ...conversation,
+      title: newTitle || conversation.title,
+      updatedAt: new Date().toISOString(),
+      messages: [...conversation.messages, userMessage],
+    }));
+
+    // Kullanıcı mesajını veritabanına kaydet
+    try {
+      await conversationApi.addMessage(convId, 'user', text);
+      if (newTitle) await conversationApi.rename(convId, newTitle);
+    } catch (e) {
+      console.warn('Mesaj kaydedilemedi (user):', e);
+    }
+
     setIsLoading(true);
     try {
+      let assistantMessage;
+
       if (source === 'global') {
         const response = await searchApi.searchArxiv(text);
         const results = response.data.results;
-        if (results.length === 0) {
-          setMessages((prev) => [...prev, { role: 'assistant', text: `ArXiv'de "${text}" ile ilgili makale bulamadım.` }]);
-        } else {
-          setMessages((prev) => [...prev, {
-            role: 'assistant',
-            text: `"${text}" konusuyla ilgili ArXiv'de şu makaleleri buldum:`,
-            isSearchResult: true,
-            sources: results.map(r => ({ title: r.title, excerpt: r.summary, year: r.published, paper_id: r.arxiv_id, authors: r.authors, canAdd: true }))
-          }]);
-        }
+        assistantMessage =
+          results.length === 0
+            ? { role: 'assistant', text: `ArXiv'de "${text}" ile ilgili makale bulamadım.` }
+            : {
+                role: 'assistant',
+                text: `"${text}" konusuyla ilgili ArXiv'de şu makaleleri buldum:`,
+                isSearchResult: true,
+                sources: results.map((r) => ({
+                  title: r.title,
+                  excerpt: r.summary,
+                  year: r.published,
+                  paper_id: r.arxiv_id,
+                  authors: r.authors,
+                  canAdd: true,
+                })),
+              };
       } else {
-        const response = await searchApi.query(text);
-        setMessages((prev) => [...prev, {
+        const nextHistory = [...messages, userMessage]
+          .slice(-10)
+          .map((message) => ({ role: message.role, text: message.text }));
+
+        const response = await searchApi.query(text, nextHistory);
+        assistantMessage = {
           role: 'assistant',
           text: response.data.answer,
           papers: response.data.relevant_papers,
           chunks_count: response.data.source_chunks_count,
           sources: response.data.sources || [],
-        }]);
+        };
+      }
+
+      updateCurrentConversation((conversation) => ({
+        ...conversation,
+        updatedAt: new Date().toISOString(),
+        messages: [...conversation.messages, assistantMessage],
+      }));
+
+      // Asistan cevabını veritabanına kaydet
+      try {
+        await conversationApi.addMessage(convId, 'assistant', assistantMessage.text);
+      } catch (e) {
+        console.warn('Mesaj kaydedilemedi (assistant):', e);
       }
     } catch (error) {
       console.error('Sorgu hatası:', error);
-      setMessages((prev) => [...prev, { role: 'assistant', text: 'Üzgünüm, bir hata oluştu.' }]);
+      updateCurrentConversation((conversation) => ({
+        ...conversation,
+        updatedAt: new Date().toISOString(),
+        messages: [...conversation.messages, { role: 'assistant', text: 'Üzgünüm, bir hata oluştu.' }],
+      }));
     } finally {
       setIsLoading(false);
     }
@@ -127,7 +268,7 @@ function AppInner() {
   };
 
   const handleSeed = async () => {
-    setUploadStatus("Demo veriler ekleniyor...");
+    setUploadStatus('Demo veriler ekleniyor...');
     setIsUploading(true);
     try {
       const response = await searchApi.seedDemo();
@@ -135,20 +276,28 @@ function AppInner() {
       if (data.status === 'success') {
         await loadWorkspaceData();
         setUploadStatus(data.message);
-        setTimeout(() => setUploadStatus(""), 4000);
+        setTimeout(() => setUploadStatus(''), 4000);
       } else {
-        setUploadStatus("Hata: " + (data.detail || "Bilinmeyen hata"));
+        setUploadStatus(`Hata: ${data.detail || 'Bilinmeyen hata'}`);
       }
     } catch (error) {
-      console.error("Seed hatası:", error);
-      setUploadStatus("Bağlantı hatası. Docker çalışıyor mu?");
+      console.error('Seed hatası:', error);
+      setUploadStatus('Bağlantı hatası. Docker çalışıyor mu?');
     } finally {
       setIsUploading(false);
     }
   };
 
   return (
-    <div className="app-shell">
+    <div className="app-shell app-shell-with-sidebar">
+      <ConversationSidebar
+        conversations={conversations}
+        currentConversationId={currentConversation?.id}
+        onSelectConversation={selectConversation}
+        onCreateConversation={createNewConversation}
+        onDeleteConversation={deleteConversation}
+      />
+
       <div className="workspace-shell">
         <Topbar
           activeTab={activeTab}
@@ -161,21 +310,40 @@ function AppInner() {
         <main className="workspace-main">
           <Routes>
             <Route path="/" element={<Navigate to="/chat" replace />} />
-            <Route path="/chat" element={
-              <ChatView messages={messages} onSendMessage={handleSendMessage} onAddPaper={handleAddPaper} isLoading={isLoading} papers={papers} setActiveTab={handleTabChange} />
-            } />
-            <Route path="/workspace" element={
-              <WorkspaceView papers={papers} libraryStats={libraryStats} setActiveTab={handleTabChange} onSeed={handleSeed} />
-            } />
-            <Route path="/graph" element={
-              <GraphView data={graphData} papers={papers} onSeed={handleSeed} isSeeding={isUploading} />
-            } />
-            <Route path="/library" element={
-              <LibraryView onUpload={handleUpload} onAddPaper={handleAddPaper} isUploading={isUploading} uploadStatus={uploadStatus} papers={papers} libraryStats={libraryStats} setActiveTab={handleTabChange} previousTab={previousTab} />
-            } />
-            <Route path="/analytics" element={
-              <AnalyticsView papers={papers} libraryStats={libraryStats} graphData={graphData} />
-            } />
+            <Route
+              path="/chat"
+              element={
+                <ChatView
+                  messages={messages}
+                  onSendMessage={handleSendMessage}
+                  onAddPaper={handleAddPaper}
+                  isLoading={isLoading}
+                  papers={papers}
+                  setActiveTab={handleTabChange}
+                />
+              }
+            />
+            <Route
+              path="/workspace"
+              element={<WorkspaceView papers={papers} libraryStats={libraryStats} setActiveTab={handleTabChange} onSeed={handleSeed} />}
+            />
+            <Route path="/graph" element={<GraphView data={graphData} papers={papers} onSeed={handleSeed} isSeeding={isUploading} />} />
+            <Route
+              path="/library"
+              element={
+                <LibraryView
+                  onUpload={handleUpload}
+                  onAddPaper={handleAddPaper}
+                  isUploading={isUploading}
+                  uploadStatus={uploadStatus}
+                  papers={papers}
+                  libraryStats={libraryStats}
+                  setActiveTab={handleTabChange}
+                  previousTab={previousTab}
+                />
+              }
+            />
+            <Route path="/analytics" element={<AnalyticsView papers={papers} libraryStats={libraryStats} graphData={graphData} />} />
             <Route path="*" element={<Navigate to="/chat" replace />} />
           </Routes>
         </main>

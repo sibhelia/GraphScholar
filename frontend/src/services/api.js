@@ -17,7 +17,7 @@ export const searchApi = {
             headers: { 'Content-Type': 'multipart/form-data' },
         });
     },
-    query: (question) => api.post('/query', { question }),
+    query: (question, history = []) => api.post('/query', { question, history }),
     health: () => api.get('/health'),
     getPapers: () => api.get('/papers'),
     getLibraryOverview: () => api.get('/library/overview'),
@@ -26,6 +26,16 @@ export const searchApi = {
     searchArxiv: (query) => api.get(`/search-arxiv?q=${query}`),
     addPaperFromArxiv: (title) => api.post('/add-from-arxiv', { title }),
     seedDemo: () => api.post('/seed-demo'),
+};
+
+export const conversationApi = {
+    list: () => api.get('/conversations'),
+    get: (id) => api.get(`/conversations/${id}`),
+    create: (title = '') => api.post('/conversations', { title }),
+    rename: (id, title) => api.patch(`/conversations/${id}`, { title }),
+    delete: (id) => api.delete(`/conversations/${id}`),
+    addMessage: (conversationId, role, content) =>
+        api.post(`/conversations/${conversationId}/messages`, { role, content }),
 };
 
 export default api;

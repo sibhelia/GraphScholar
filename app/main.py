@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from fastapi import FastAPI, UploadFile, File, HTTPException, Body, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -186,6 +186,7 @@ async def search_arxiv(q: str):
 
 class QueryRequest(BaseModel):
     question: str
+    history: list[dict] = Field(default_factory=list)
 
 @app.post("/query")
 async def query_system(request: QueryRequest):
@@ -194,7 +195,7 @@ async def query_system(request: QueryRequest):
     Vektör (ChromaDB) ve Grafik (Neo4j) verilerini birleştirerek cevap üretir.
     """
     try:
-        result = search_service.perform_hybrid_search(request.question)
+        result = search_service.perform_hybrid_search(request.question, request.history)
         return result
     except Exception as e:
         print(f"Sorgulama hatasi: {e}")
@@ -373,3 +374,138 @@ async def get_graph(limit: int = 40):
     except Exception as e:
         print(f"Grafik ozet hatasi: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ─────────────────────────────────────────────────────────────
+#  SOHBET GEÇMİŞİ CRUD (PostgreSQL)
+# ─────────────────────────────────────────────────────────────
+
+from app.models import Conversation, Message as MessageModel
+
+class ConversationCreate(BaseModel):
+    title: str = ""
+
+class ConversationRename(BaseModel):
+    title: str
+
+class MessageCreate(BaseModel):
+    role: str        # 'user' | 'assistant'
+    content: str
+
+
+def _get_session():
+    """Yardımcı: mevcut PostgreSQL oturumunu döner."""
+    if not db.SessionLocal:
+        raise HTTPException(status_code=503, detail="PostgreSQL bağlantısı henüz hazır değil.")
+    return db.SessionLocal()
+
+
+@app.get("/conversations")
+async def list_conversations():
+    """Tüm sohbetleri (mesajları ile birlikte) döner."""
+    session = _get_session()
+    try:
+        convs = session.query(Conversation).order_by(Conversation.updated_at.desc()).all()
+        return [
+            {
+                "id": c.id,
+                "title": c.title or "",
+                "createdAt": c.created_at.isoformat() if c.created_at else None,
+                "updatedAt": c.updated_at.isoformat() if c.updated_at else None,
+                "messages": [
+                    {"id": m.id, "role": m.role, "text": m.content,
+                     "createdAt": m.created_at.isoformat() if m.created_at else None}
+                    for m in c.messages
+                ],
+            }
+            for c in convs
+        ]
+    finally:
+        session.close()
+
+
+@app.get("/conversations/{conversation_id}")
+async def get_conversation(conversation_id: str):
+    """Tek bir sohbeti mesajlarıyla döner."""
+    session = _get_session()
+    try:
+        c = session.query(Conversation).filter(Conversation.id == conversation_id).first()
+        if not c:
+            raise HTTPException(status_code=404, detail="Sohbet bulunamadı.")
+        return {
+            "id": c.id,
+            "title": c.title or "",
+            "createdAt": c.created_at.isoformat() if c.created_at else None,
+            "updatedAt": c.updated_at.isoformat() if c.updated_at else None,
+            "messages": [
+                {"id": m.id, "role": m.role, "text": m.content,
+                 "createdAt": m.created_at.isoformat() if m.created_at else None}
+                for m in c.messages
+            ],
+        }
+    finally:
+        session.close()
+
+
+@app.post("/conversations", status_code=201)
+async def create_conversation(body: ConversationCreate):
+    """Yeni boş bir sohbet oluşturur."""
+    session = _get_session()
+    try:
+        conv = Conversation(title=body.title)
+        session.add(conv)
+        session.commit()
+        session.refresh(conv)
+        return {"id": conv.id, "title": conv.title, "createdAt": conv.created_at.isoformat(), "updatedAt": conv.updated_at.isoformat(), "messages": []}
+    finally:
+        session.close()
+
+
+@app.patch("/conversations/{conversation_id}")
+async def rename_conversation(conversation_id: str, body: ConversationRename):
+    """Sohbet başlığını günceller."""
+    session = _get_session()
+    try:
+        conv = session.query(Conversation).filter(Conversation.id == conversation_id).first()
+        if not conv:
+            raise HTTPException(status_code=404, detail="Sohbet bulunamadı.")
+        conv.title = body.title
+        session.commit()
+        return {"ok": True}
+    finally:
+        session.close()
+
+
+@app.delete("/conversations/{conversation_id}")
+async def delete_conversation(conversation_id: str):
+    """Sohbeti ve tüm mesajlarını siler."""
+    session = _get_session()
+    try:
+        conv = session.query(Conversation).filter(Conversation.id == conversation_id).first()
+        if not conv:
+            raise HTTPException(status_code=404, detail="Sohbet bulunamadı.")
+        session.delete(conv)
+        session.commit()
+        return {"ok": True}
+    finally:
+        session.close()
+
+
+@app.post("/conversations/{conversation_id}/messages", status_code=201)
+async def add_message(conversation_id: str, body: MessageCreate):
+    """Bir sohbete yeni mesaj ekler ve sohbetin updated_at'ini günceller."""
+    session = _get_session()
+    try:
+        conv = session.query(Conversation).filter(Conversation.id == conversation_id).first()
+        if not conv:
+            raise HTTPException(status_code=404, detail="Sohbet bulunamadı.")
+        msg = MessageModel(conversation_id=conversation_id, role=body.role, content=body.content)
+        session.add(msg)
+        # updated_at'i elle güncelle
+        from datetime import datetime, timezone
+        conv.updated_at = datetime.now(timezone.utc)
+        session.commit()
+        session.refresh(msg)
+        return {"id": msg.id, "role": msg.role, "text": msg.content, "createdAt": msg.created_at.isoformat()}
+    finally:
+        session.close()

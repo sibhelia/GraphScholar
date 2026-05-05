@@ -36,7 +36,21 @@ class SearchService:
             print(f"Vektor arama fallback'e dusuyor: {e}")
             return [], [], []
 
-    def perform_hybrid_search(self, query: str) -> Dict:
+    def _format_history(self, history: list[dict]) -> str:
+        if not history:
+            return ""
+
+        normalized = []
+        for message in history[-10:]:
+            role = message.get("role", "user")
+            text = (message.get("text") or "").strip()
+            if not text:
+                continue
+            speaker = "Kullanici" if role == "user" else "Asistan"
+            normalized.append(f"{speaker}: {text}")
+        return "\n".join(normalized)
+
+    def perform_hybrid_search(self, query: str, history: list[dict] | None = None) -> Dict:
         """
         1. Vektor arama yap (ChromaDB)
         2. Graph genisletme yap (Neo4j)
@@ -44,6 +58,7 @@ class SearchService:
         4. Gemini ile sentezle
         """
         print(f"Hibrit arama basliyor: '{query}'")
+        conversation_history = self._format_history(history or [])
 
         relevant_docs, relevant_metadatas, relevant_distances = self._search_vector_context(query)
         paper_titles = list(dict.fromkeys([m.get("title") for m in relevant_metadatas if m.get("title")]))
@@ -92,6 +107,10 @@ class SearchService:
         Eger vektor verisi azsa veya yoksa, kutuphanedeki makale ozetlerinden sentez yap.
         Kullanicinin kutuphanesinde makaleler varsa "veri yok" deme.
         Ozellikle toplu ozet istenirse, ana bulgulari, ortak temalari ve arastirma egilimlerini tek bir duzgun paragrafta derle.
+        Onceki konusmanin baglamini koru; "bunu", "az onceki ozet", "buna dayanarak" gibi ifadeleri son 10 mesajlik gecmise gore yorumla.
+
+        SON 10 MESAJLIK KONUSMA GECMISI:
+        {conversation_history}
 
         Soru: {query}
 

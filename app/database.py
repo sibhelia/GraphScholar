@@ -17,8 +17,17 @@ class Database:
         self.chroma_host = os.getenv("CHROMA_HOST", "chromadb")
         self.chroma_port = int(os.getenv("CHROMA_PORT", 8000))
 
+        # PostgreSQL Ayarları
+        pg_user = os.getenv("POSTGRES_USER", "admin")
+        pg_password = os.getenv("POSTGRES_PASSWORD", "admin123")
+        pg_db = os.getenv("POSTGRES_DB", "graphscholar")
+        # Docker'da postgres servisine baglaniyoruz
+        self.postgres_uri = f"postgresql://{pg_user}:{pg_password}@postgres:5432/{pg_db}"
+
         self.neo4j_driver = None
         self.chroma_client = None
+        self.SessionLocal = None
+        self.engine = None
 
     def connect(self):
         """Veritabanlarina baglanti saglar."""
@@ -40,8 +49,18 @@ class Database:
                 )
                 # Chroma baglantisini test et
                 self.chroma_client.heartbeat()
+
+                # PostgreSQL baglantisini kur
+                from sqlalchemy import create_engine
+                from sqlalchemy.orm import sessionmaker
+                self.engine = create_engine(self.postgres_uri)
+                self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
                 
-                print("Veritabanı bağlantıları başarılı.")
+                # Tablolari otomatik olustur (varsa dokunmaz)
+                from app.models import Base
+                Base.metadata.create_all(bind=self.engine)
+                
+                print("Veritabanı bağlantıları (Neo4j, Chroma, Postgres) başarılı.")
                 return 
             except Exception as e:
                 print(f"Baglanti denemesi {i+1} basarisiz: {e}")
