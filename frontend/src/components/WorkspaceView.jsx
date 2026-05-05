@@ -63,7 +63,7 @@ const WorkspaceView = ({ papers = [], libraryStats, setActiveTab }) => {
     };
 
     return (
-        <section className="page-scroll page-workspace" style={{ padding: '24px', position: 'relative' }}>
+        <section className="page-scroll page-workspace" style={{ position: 'relative' }}>
             {/* KPI Modal */}
             {activeKpi && (
                 <div style={{ 

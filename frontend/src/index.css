@@ -289,6 +289,8 @@ a {
 }
 
 .workspace-main {
+  width: 100% !important;
+  max-width: none !important;
   flex: 1;
   min-height: 0;
   overflow: hidden;
@@ -549,7 +551,7 @@ a {
 .page-scroll {
   height: 100%;
   overflow: auto;
-  padding: 4px 4px 16px
+  padding: 12px;
 }
 
 .page-chat,
@@ -1580,6 +1582,19 @@ p {
 
 /* GRAPH */
 .page-graph {
+  width: 100% !important;
+  max-width: none !important;
+  flex: 1 !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.graph-view-container {
+  width: 100% !important;
+  flex: 1 !important;
+}
+
+.page-graph-old {
   display: flex;
   flex-direction: column
 }
@@ -1807,7 +1822,8 @@ p {
 
 /* WORKSPACE */
 .page-workspace {
-  padding: 4px 4px 16px
+  display: flex;
+  flex-direction: column;
 }
 
 /* RESPONSIVE */
