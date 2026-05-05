@@ -130,7 +130,7 @@ const GraphView = ({ data, papers = [], onSeed, isSeeding }) => {
     );
 
     return (
-        <section className="page-scroll page-graph">
+        <section className="page-graph">
             <div className="graph-header-shell" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '20px' }}>
                 <div>
                     <div className="eyebrow">BİLGİ GRAFİĞİ</div>

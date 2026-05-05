@@ -336,7 +336,7 @@ function AppInner() {
         onDeleteConversation={deleteConversation}
       />
 
-      <div className="workspace-shell">
+      <div className={`workspace-shell${activeTab === 'graph' || activeTab === 'analytics' ? ' shell-fullwidth' : ''}`}>
         <Topbar
           activeTab={activeTab}
           setActiveTab={handleTabChange}

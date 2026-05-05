@@ -79,6 +79,11 @@ a {
   overflow: hidden;
 }
 
+.workspace-shell.shell-fullwidth {
+  max-width: none;
+  margin: 0;
+}
+
 .conversation-sidebar {
   background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
   border: 1px solid #dbe7e1;
@@ -560,6 +565,11 @@ a {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+/* Graph sayfasına özgü: page-scroll'dan gelen padding'i sıfırla */
+.page-graph {
+  padding: 0;
 }
 
 /* EYEBROW */
