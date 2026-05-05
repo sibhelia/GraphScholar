@@ -21,8 +21,11 @@ class Database:
         pg_user = os.getenv("POSTGRES_USER", "admin")
         pg_password = os.getenv("POSTGRES_PASSWORD", "admin123")
         pg_db = os.getenv("POSTGRES_DB", "graphscholar")
-        # Docker'da postgres servisine baglaniyoruz
-        self.postgres_uri = f"postgresql://{pg_user}:{pg_password}@postgres:5432/{pg_db}"
+        # Railway/Render DATABASE_URL'ini önce dene, yoksa Docker servis adını kullan
+        self.postgres_uri = os.getenv(
+            "DATABASE_URL",
+            f"postgresql://{pg_user}:{pg_password}@postgres:5432/{pg_db}"
+        )
 
         self.neo4j_driver = None
         self.chroma_client = None
