@@ -60,43 +60,44 @@ GraphScholar solves a core problem in academic research: information is scattere
 
 ---
 
-## Application Screens
+## Application Screens (Uygulama Ekranları)
 
-### Authentication
+### Authentication (Giriş Ekranı)
 
-A secure login interface where users authenticate before accessing their workspace. Built with a modern split-panel design featuring the platform's value proposition on the left and a minimalist, intuitive login form on the right.
+Platformun değer önerisini ve temel özelliklerini modern, ikiye bölünmüş bir ekran tasarımıyla sunan güvenli giriş arayüzü. Minimalist ve sezgisel yapısıyla kullanıcıların çalışma alanlarına hızlıca erişmesini sağlar.
 
 ![Authentication](docs/screenshots/login_view.png)
 
-### Research Assistant
+### Araştırma Asistanı (Research Assistant)
 
-The primary interface for interacting with the corpus. The left panel contains the conversational chat area with separate message history and input containers. The right panel displays live library statistics (document count, chunk count, concept count, citation edges) and a system capabilities reference.
+Sistemle etkileşime geçilen ana arayüz. Sol tarafta "Arama Geçmişi" (eski sohbetler) ve yeni sohbet başlatma seçenekleri içeren kenar çubuğu yer alır. Sağ tarafta ise kütüphanenizin anlık durumu (makale, kavram ve ilişki sayıları) ile sistem yeteneklerini özetleyen bir panel bulunur.
 
-![Research Assistant](docs/screenshots/chat_view.png)
+![Araştırma Asistanı](docs/screenshots/chat_view.png)
 
-### Workspace
+### Çalışma Alanı (Workspace)
 
-The command center for the corpus. Displays four color-coded KPI cards (Total Documents, Semantic Entities, Knowledge Chunks, Total Citations) and a scrollable grid of the most recently added papers with author and year metadata.
+Dijital kütüphanenizin yönetim merkezi. Sayfanın en üstünde dört temel KPI kartı (Toplam Makale, Semantik Varlıklar, Bilgi Parçası, Toplam Atıf) yer alırken, hemen altında sisteme en son eklenen makaleleri yazarları ve yayın yıllarıyla gösteren dinamik bir ızgara yapısı bulunur.
 
-![Workspace](docs/screenshots/workspace_view.png)
+![Çalışma Alanı](docs/screenshots/workspace_view.png)
 
-### Knowledge Graph
+### Bilgi Grafiği (Knowledge Graph)
 
-A full-canvas, interactive graph rendered using a force-directed layout. Papers are displayed as labeled rectangles; authors and concepts appear as color-coded circular nodes. The legend, filter controls, and a minimap allow precise navigation across large graphs.
+Tüm genişliği kaplayan, etkileşimli bir akademik ağ haritası. Makaleler, yazarlar ve kavramlar farklı renklerdeki düğümlerle (nodes) ve bu düğümler arasındaki ilişkiler (Atıf, Yazarlık, Kavram bağları) yönlü kenarlarla (edges) görselleştirilir. Sol taraftaki gösterge tablosu (legend) ve yol bulma araçlarıyla büyük graflarda detaylı inceleme yapılabilir.
 
-![Knowledge Graph](docs/screenshots/graph_view.png)
+![Bilgi Grafiği](docs/screenshots/graph_view.png)
 
-### Library
+### Kütüphane (Library)
 
-Split-panel hero section with a PDF upload dropzone (green theme) alongside an ArXiv ingestion form (blue theme). Below, a four-column KPI grid and a paginated paper collection grid sorted newest-first.
+Belge yönetimi ekranı. Üst kısımda lokalden sürükle-bırak ile "PDF Yükle" alanı ve doğrudan başlık aratarak "ArXiv'den İndir" modülü yan yana sunulur. Alt kısımda ise toplam makale, yazar, kavram sayılarını gösteren istatistikler ve mevcut koleksiyondaki belgelerin bir listesi yer alır.
 
-![Library](docs/screenshots/library_view.png)
+![Kütüphane](docs/screenshots/library_view.png)
 
-### Analytics
+### Analitik (Analytics)
 
-Four-column metric grid (Total Documents, H-Index Score, Citation Network, Collective Authors) followed by two analysis panels: a ranked list of the most-cited papers and a qualitative coverage analysis with graph density and RAG accuracy signals.
+Akademik etkinin sayısal olarak ölçüldüğü sayfa. En üstte Toplam Belge, H-Index Skoru, Atıf Ağı ve Kolektif Yazar sayısını gösteren KPI kartları vardır. Alt kısımda ise kütüphanenizdeki "En Çok Atıf Alan Makaleler" listesi ile tematik tutarlılığı ve RAG performansını ölçen "Kapsam Analizi" panelleri bulunur.
 
-![Analytics](docs/screenshots/analytics_view.png)
+![Analitik](docs/screenshots/analytics_view.png)
+
 
 ---
 
