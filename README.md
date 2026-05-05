@@ -62,6 +62,12 @@ GraphScholar solves a core problem in academic research: information is scattere
 
 ## Application Screens
 
+### Authentication
+
+A secure login interface where users authenticate before accessing their workspace. Built with a modern split-panel design featuring the platform's value proposition on the left and a minimalist, intuitive login form on the right.
+
+![Authentication](docs/screenshots/login_view.png)
+
 ### Research Assistant
 
 The primary interface for interacting with the corpus. The left panel contains the conversational chat area with separate message history and input containers. The right panel displays live library statistics (document count, chunk count, concept count, citation edges) and a system capabilities reference.
